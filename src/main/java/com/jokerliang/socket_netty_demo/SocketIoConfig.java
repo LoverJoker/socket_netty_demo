@@ -1,5 +1,7 @@
 package com.jokerliang.socket_netty_demo;
 
+import com.corundumstudio.socketio.AuthorizationListener;
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketConfig;
 import com.corundumstudio.socketio.SocketIOServer;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +37,12 @@ public class SocketIoConfig {
         config.setUpgradeTimeout(1000000);
         config.setPingTimeout(6000000);
         config.setPingInterval(25000);
-
+        config.setAuthorizationListener(new AuthorizationListener() {
+            @Override
+            public boolean isAuthorized(HandshakeData handshakeData) {
+                return true;
+            }
+        });
         config.setOrigin("Access-Control-Allow-Origin");
         return new SocketIOServer(config);
     }

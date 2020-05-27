@@ -2,7 +2,8 @@ cd /root/socketNettyDemo
 
 git pull
 
-docker run --rm -v /root/socketNettyDemo:/socketNettyDemo -w socketNettyDemo maven mvn clean package
+rm -rf ./target
+docker run --rm -v /root/socketNettyDemo:/socketNettyDemo -v /root/.m2:/root/.m2 -w /socketNettyDemo maven mvn clean package -o -Dmaven.test.skip=true
 
 docker-compose restart
 

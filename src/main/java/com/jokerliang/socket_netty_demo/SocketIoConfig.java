@@ -22,7 +22,7 @@ public class SocketIoConfig {
         socketConfig.setSoLinger(0);
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setSocketConfig(socketConfig);
-        config.setHostname("localhost");
+        config.setHostname("120.27.232.182");
         config.setPort(8766);
         config.setBossThreads(1);
         config.setWorkerThreads(100);

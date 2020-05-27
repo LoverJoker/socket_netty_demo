@@ -8,6 +8,6 @@ services:
       - 8766:8766
     container_name: socket-netty-test
     volumes:
-      - ./socket_netty_demo:/socket_netty_demo
+      - /root/socketNettyDemo:/socketNettyDemo
     working_dir: /socket_netty_demo
-    command: java
+    command: java -jar ./target/socket_netty_demo-0.0.1-SNAPSHOT.jar

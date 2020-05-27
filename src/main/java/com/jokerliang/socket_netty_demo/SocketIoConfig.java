@@ -19,8 +19,6 @@ public class SocketIoConfig {
 
     @Bean
     public SocketIOServer socketIOServer() throws UnknownHostException {
-        String hostAddress = "127.0.0.1";
-
         SocketConfig socketConfig = new SocketConfig();
         socketConfig.setTcpNoDelay(true);
         socketConfig.setSoLinger(0);

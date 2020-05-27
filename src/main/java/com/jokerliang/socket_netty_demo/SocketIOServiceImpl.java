@@ -2,15 +2,20 @@ package com.jokerliang.socket_netty_demo;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import com.sun.org.apache.bcel.internal.generic.RETURN;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
+import rx.Observable;
+import rx.functions.Action1;
 
 @Service(value = "socketIOService")
 public class SocketIOServiceImpl implements SocketIOService {
@@ -58,12 +63,13 @@ public class SocketIOServiceImpl implements SocketIOService {
             }
         });
 
-        // 处理自定义的事件，与连接监听类似
-        socketIOServer.addEventListener(PUSH_EVENT, PushMessage.class, (client, data, ackSender) -> {
-            // TODO do something
-            System.out.println(client);
-        });
+
+
+
+
         socketIOServer.start();
+
+
     }
 
     @Override
@@ -75,10 +81,47 @@ public class SocketIOServiceImpl implements SocketIOService {
     }
 
     @Override
-    public void pushMessageToUser(PushMessage pushMessage) {
-        SocketIOClient client = clientMap.get("joker");
+    public Boolean pushMessageToUser(String clientId, PushMessage pushMessage) {
+        AtomicBoolean isSuccess = new AtomicBoolean(false);
+        // 处理自定义的事件，与连接监听类似
+        socketIOServer.addEventListener(RESPONSE_EVENT, String.class, (subClient, data, ackSender) -> {
+            isSuccess.set(true);
+        });
 
+        SocketIOClient client = clientMap.get(clientId);
         client.sendEvent(PUSH_EVENT, pushMessage);
+
+
+
+
+        Callable<Boolean> callable = () -> {
+            boolean flag = false;
+            int i = 0;
+
+            while (i < 5000 / 100) {
+                Thread.sleep(100);
+                i++;
+                if(isSuccess.get()) {
+                    flag = true;
+                    break;
+                }
+            }
+
+            return flag;
+        };
+        ExecutorService executor = Executors.newCachedThreadPool();
+        Future<Boolean> future = executor.submit(callable);
+
+        try {
+            Boolean result = future.get();
+            executor.shutdown();
+
+            socketIOServer.removeAllListeners(RESPONSE_EVENT);
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**
@@ -89,7 +132,7 @@ public class SocketIOServiceImpl implements SocketIOService {
     private String getParamsByClient(SocketIOClient client) {
         // 从请求的连接中拿出参数（这里的loginUserNum必须是唯一标识）
         Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
-        List<String> list = params.get("loginUserNum");
+        List<String> list = params.get("deviceCode");
         if (list != null && list.size() > 0) {
             return list.get(0);
         }

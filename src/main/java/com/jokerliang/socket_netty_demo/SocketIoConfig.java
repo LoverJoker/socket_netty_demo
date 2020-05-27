@@ -35,6 +35,8 @@ public class SocketIoConfig {
         config.setUpgradeTimeout(1000000);
         config.setPingTimeout(6000000);
         config.setPingInterval(25000);
+
+        config.setOrigin("Access-Control-Allow-Origin");
         return new SocketIOServer(config);
     }
 }

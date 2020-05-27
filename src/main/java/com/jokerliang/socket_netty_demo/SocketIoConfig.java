@@ -21,20 +21,13 @@ public class SocketIoConfig {
     @Bean
     public SocketIOServer socketIOServer() throws UnknownHostException {
         String hostAddress = "127.0.0.1";
-        InetAddress[] ips = InetAddress.getAllByName("localhost");
-        if (ips != null) {
-            InetAddress ip = ips[0];
-            hostAddress = ip.getHostAddress();
-            System.out.println(ips);
-            System.out.println(hostAddress);
-        }
-        System.out.println("当前Ip是");
+
         SocketConfig socketConfig = new SocketConfig();
         socketConfig.setTcpNoDelay(true);
         socketConfig.setSoLinger(0);
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setSocketConfig(socketConfig);
-        config.setHostname(hostAddress);
+        config.setHostname("localhost");
         config.setPort(8766);
         config.setBossThreads(1);
         config.setWorkerThreads(100);

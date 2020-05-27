@@ -9,5 +9,5 @@ services:
     container_name: socket-netty-test
     volumes:
       - /root/socketNettyDemo:/socketNettyDemo
-    working_dir: /socket_netty_demo
+    working_dir: /socketNettyDemo
     command: java -jar ./target/socket_netty_demo-0.0.1-SNAPSHOT.jar

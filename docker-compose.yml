@@ -1,0 +1,13 @@
+version: '2'
+services:
+  web:
+    image: java
+    restart: always
+    ports:
+      - 8769:8769
+      - 8766:8766
+    container_name: socket-netty-test
+    volumes:
+      - ./socket_netty_demo:/socket_netty_demo
+    working_dir: /socket_netty_demo
+    command: java

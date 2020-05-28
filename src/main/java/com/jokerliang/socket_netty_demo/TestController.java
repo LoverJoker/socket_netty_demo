@@ -1,6 +1,7 @@
 package com.jokerliang.socket_netty_demo;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,6 +14,7 @@ import java.util.UUID;
  * @author jokerliang
  * @date 2020-05-27 12:27
  */
+@Slf4j
 @RestController
 public class TestController {
 
@@ -40,8 +42,7 @@ public class TestController {
         } catch (ClientOffLineException e) {
             pushResult = e.getMessage();
         }
-        System.out.println(pushResult);
-
+        log.info(pushResult);
 
         return pushResult;
     }
@@ -52,7 +53,7 @@ public class TestController {
         boolean isSuccess;
         SocketPushResult socketPushResult = socketIOService.pushMessage(clientId, pushMessage);
         isSuccess = socketPushResult.isSuccess();
-        System.out.println(socketPushResult.getResult());
+        log.info(socketPushResult.getResult());
         if (isSuccess) {
             return true;
         }

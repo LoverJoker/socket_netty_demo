@@ -8,12 +8,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 
+@Slf4j
 @Service(value = "socketIOService")
 public class SocketIOServiceImpl implements SocketIOService {
 
@@ -46,7 +48,7 @@ public class SocketIOServiceImpl implements SocketIOService {
         // 监听客户端连接
         socketIOServer.addConnectListener(client -> {
             String loginUserNum = getParamsByClient(client);
-            System.out.println("客户端：" + loginUserNum + "已连接");
+            log.info("客户端：" + loginUserNum + "已连接");
             if (loginUserNum != null) {
                 clientMap.put(loginUserNum, client);
             }

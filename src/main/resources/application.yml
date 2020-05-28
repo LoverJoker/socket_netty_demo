@@ -1,0 +1,8 @@
+server:
+  port: 8769
+logging:
+  level:
+    root:
+      info
+  file:
+    path: ./logs

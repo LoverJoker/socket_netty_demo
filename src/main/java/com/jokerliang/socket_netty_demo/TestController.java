@@ -1,7 +1,6 @@
 package com.jokerliang.socket_netty_demo;
 
 import com.google.gson.Gson;
-import com.sun.org.apache.bcel.internal.generic.NEW;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +20,8 @@ public class TestController {
     SocketIOService socketIOService;
 
     @GetMapping("/test")
-    public Boolean test (String clientId) {
+    public String test (String clientId) {
+        String pushResult = "推送成功";
         Gson gson = new Gson();
 
         String orderCode = UUID.randomUUID().toString();
@@ -32,10 +32,35 @@ public class TestController {
         PushMessage pushMessage =
                 new PushMessage(PushMessage.EVENT_SHIPMENT, shipmentJson);
 
-        Boolean aBoolean = socketIOService.pushMessageToUser(clientId, pushMessage);
-        System.out.println("当前是否成功" + aBoolean);
+        try {
+            Boolean isPushSuccess = push(0, clientId, pushMessage);
+            if (!isPushSuccess) {
+                pushResult = "推送失败";
+            }
+        } catch (ClientOffLineException e) {
+            pushResult = e.getMessage();
+        }
+        System.out.println(pushResult);
 
 
-        return aBoolean;
+        return pushResult;
+    }
+
+
+    private Boolean push(int count, String clientId, PushMessage pushMessage) {
+
+        boolean isSuccess;
+        SocketPushResult socketPushResult = socketIOService.pushMessage(clientId, pushMessage);
+        isSuccess = socketPushResult.isSuccess();
+        System.out.println(socketPushResult.getResult());
+        if (isSuccess) {
+            return true;
+        }
+        count += 1;
+        if (count < 5) {
+            push(count, clientId, pushMessage);
+        }
+
+        return false;
     }
 }

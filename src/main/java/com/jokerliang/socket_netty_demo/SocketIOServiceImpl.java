@@ -8,14 +8,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
-import rx.Observable;
-import rx.functions.Action1;
 
 @Service(value = "socketIOService")
 public class SocketIOServiceImpl implements SocketIOService {
@@ -49,6 +46,7 @@ public class SocketIOServiceImpl implements SocketIOService {
         // 监听客户端连接
         socketIOServer.addConnectListener(client -> {
             String loginUserNum = getParamsByClient(client);
+            System.out.println("客户端：" + loginUserNum + "已连接");
             if (loginUserNum != null) {
                 clientMap.put(loginUserNum, client);
             }
@@ -64,11 +62,7 @@ public class SocketIOServiceImpl implements SocketIOService {
         });
 
 
-
-
-
         socketIOServer.start();
-
 
     }
 
@@ -81,16 +75,21 @@ public class SocketIOServiceImpl implements SocketIOService {
     }
 
     @Override
-    public Boolean pushMessageToUser(String clientId, PushMessage pushMessage) {
+    public SocketPushResult pushMessage(String clientId, PushMessage pushMessage) {
+        SocketIOClient client = clientMap.get(clientId);
+
+        if (client == null) {
+            return new SocketPushResult(false, "客户端: " + clientId + "未连接");
+        }
+
         AtomicBoolean isSuccess = new AtomicBoolean(false);
         // 处理自定义的事件，与连接监听类似
         socketIOServer.addEventListener(RESPONSE_EVENT, String.class, (subClient, data, ackSender) -> {
             isSuccess.set(true);
         });
 
-        SocketIOClient client = clientMap.get(clientId);
-        client.sendEvent(PUSH_EVENT, pushMessage);
 
+        client.sendEvent(PUSH_EVENT, pushMessage);
 
 
 
@@ -109,19 +108,17 @@ public class SocketIOServiceImpl implements SocketIOService {
 
             return flag;
         };
-        ExecutorService executor = Executors.newCachedThreadPool();
-        Future<Boolean> future = executor.submit(callable);
+
+        Future<Boolean> future = ThreadUtils.getInstance().getExecutorService().submit(callable);
 
         try {
             Boolean result = future.get();
-            executor.shutdown();
-
             socketIOServer.removeAllListeners(RESPONSE_EVENT);
-            return result;
+            return new SocketPushResult(result, result ? "推送成功" : "已发送消息，但是机器未给回波，此次服务器认为推送失败");
         } catch (Exception e) {
             e.printStackTrace();
+            return new SocketPushResult(false, "推送发生异常");
         }
-        return false;
     }
 
     /**

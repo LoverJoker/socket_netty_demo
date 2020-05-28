@@ -19,5 +19,5 @@ public interface SocketIOService {
     void stop();
 
     // 推送信息
-    Boolean pushMessageToUser(String clientId, PushMessage pushMessage);
+    SocketPushResult pushMessage(String clientId, PushMessage pushMessage);
 }

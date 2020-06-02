@@ -21,5 +21,5 @@ public interface SocketIOService {
     void stop();
 
     // 推送信息
-    SocketPushResult pushMessage(UUID clientUuid, PushMessage pushMessage);
+    SocketPushResult pushMessage(PushMessage pushMessage);
 }

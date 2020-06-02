@@ -19,7 +19,6 @@ public class RedisConfig {
 
     @Bean
     MessageListenerAdapter listenerAdapter(RedisListener receiver) {
-        System.out.println("消息适配器1");
         return new MessageListenerAdapter(receiver, "onMessage");
     }
 

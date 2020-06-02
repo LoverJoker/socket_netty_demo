@@ -52,11 +52,11 @@ public class TestController {
 
     /**
      * 当有一条消息需要发送到客户端的时候，应该首先发送给rabbitMq, 然后由rabbitMq分发到相应的服务端
-     * @param clientId
+     * @param deviceCode
      * @return
      */
     @GetMapping("/test")
-    public String test (String clientId) {
+    public String test (String deviceCode) {
         String pushResult = "推送成功";
         Gson gson = new Gson();
 
@@ -66,37 +66,13 @@ public class TestController {
         String shipmentJson = gson.toJson(shipmentEntity);
 
         PushMessage pushMessage =
-                new PushMessage(PushMessage.EVENT_SHIPMENT, shipmentJson);
+                new PushMessage(deviceCode, PushMessage.EVENT_SHIPMENT, shipmentJson);
 
-        try {
-            Boolean isPushSuccess = push(0, clientId, pushMessage);
-            if (!isPushSuccess) {
-                pushResult = "推送失败";
-            }
-        } catch (ClientOffLineException e) {
-            pushResult = e.getMessage();
-        }
-        log.info(pushResult);
 
+        stringRedisTemplate.convertAndSend("channel:test", gson.toJson(pushMessage));
         return pushResult;
     }
 
 
-    private Boolean push(int count, String clientId, PushMessage pushMessage) {
 
-        UUID uuid = UUID.fromString(clientId);
-        boolean isSuccess;
-        SocketPushResult socketPushResult = socketIOService.pushMessage(uuid, pushMessage);
-        isSuccess = socketPushResult.isSuccess();
-        log.info(socketPushResult.getResult());
-        if (isSuccess) {
-            return true;
-        }
-        count += 1;
-        if (count < 5) {
-            push(count, clientId, pushMessage);
-        }
-
-        return false;
-    }
 }

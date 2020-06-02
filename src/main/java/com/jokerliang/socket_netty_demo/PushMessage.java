@@ -1,11 +1,14 @@
 package com.jokerliang.socket_netty_demo;
 
+import lombok.Data;
+
 /**
  * 求贤若饥 虚心若愚
  *
  * @author jokerliang
  * @date 2020-05-27 12:15
  */
+@Data
 public class PushMessage {
 
     public static final String EVENT_SHIPMENT = "shipment";
@@ -19,29 +22,13 @@ public class PushMessage {
      */
     private String content;
 
+    private String deviceCode;
 
-    public PushMessage(String event, String content) {
+    public PushMessage(String deviceCode, String event, String content) {
         this.event = event;
         this.content = content;
+        this.deviceCode = deviceCode;
     }
 
-    public static String getEventShipment() {
-        return EVENT_SHIPMENT;
-    }
 
-    public String getEvent() {
-        return event;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
 }

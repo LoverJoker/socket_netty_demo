@@ -44,13 +44,4 @@ public class SocketIoConfig {
         return new SocketIOServer(config);
     }
 
-
-    public Redisson getRedisson() {
-        Config redissonConfig = new Config();
-        //redissonConfig.useSingleServer().setAddress(SINGLE_SERVER);
-        redissonConfig.useSingleServer().setAddress("redis://120.27.232.182:6379");
-
-        RedissonClient redissonClient = Redisson.create(redissonConfig);
-        return (Redisson) redissonClient;
-    }
 }

@@ -1,10 +1,6 @@
 package com.jokerliang.socket_netty_demo;
 
 import com.corundumstudio.socketio.*;
-import com.corundumstudio.socketio.store.RedissonStoreFactory;
-import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

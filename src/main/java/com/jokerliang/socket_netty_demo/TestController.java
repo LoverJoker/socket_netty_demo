@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +30,8 @@ public class TestController {
     @Autowired
     RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @GetMapping("/rabbit")
     public String rabbitTest() {
@@ -41,7 +44,8 @@ public class TestController {
         map.put("createTime", createTime);
 //        rabbitTemplate.convertAndSend("fanoutExchange", null, map);
 
-        rabbitTemplate.convertAndSend("socketFanoutExchange", null, map);
+        stringRedisTemplate.convertAndSend("channel:test", "test");
+
         return "true";
     }
 

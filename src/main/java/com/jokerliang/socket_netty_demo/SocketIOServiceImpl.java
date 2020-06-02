@@ -21,9 +21,6 @@ import com.corundumstudio.socketio.SocketIOServer;
 @Service(value = "socketIOService")
 public class SocketIOServiceImpl implements SocketIOService {
 
-    @Autowired
-    private Redisson redisson;
-
 
     @Autowired
     private SocketIOServer socketIOServer;

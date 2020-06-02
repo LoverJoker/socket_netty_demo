@@ -41,11 +41,10 @@ public class SocketIoConfig {
         config.setOrigin(":*:");
 
 
-        config.setStoreFactory(new RedissonStoreFactory(getRedisson()));
         return new SocketIOServer(config);
     }
 
-    @Bean
+
     public Redisson getRedisson() {
         Config redissonConfig = new Config();
         //redissonConfig.useSingleServer().setAddress(SINGLE_SERVER);

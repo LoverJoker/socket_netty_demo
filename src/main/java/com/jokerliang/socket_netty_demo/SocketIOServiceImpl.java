@@ -52,8 +52,12 @@ public class SocketIOServiceImpl implements SocketIOService {
         socketIOServer.addConnectListener(client -> {
             String loginUserNum = getParamsByClient(client);
             log.info("客户端：" + loginUserNum + "已连接");
+            UUID sessionId = client.getSessionId();
+
+            log.info(sessionId.toString());
+            log.info("==============");
             if (loginUserNum != null) {
-                UUID sessionId = client.getSessionId();
+               // UUID sessionId = client.getSessionId();
                 System.out.println("============");
                 System.out.println(sessionId);
             }

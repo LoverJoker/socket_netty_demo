@@ -1,6 +1,7 @@
 package com.jokerliang.socket_netty_demo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-@RabbitListener(queues = "socketQueue")
+@RabbitListener(queuesToDeclare = @Queue("socketQueue"))
 public class TopicSocketRabbitMqConsumer2 {
 
     @RabbitHandler

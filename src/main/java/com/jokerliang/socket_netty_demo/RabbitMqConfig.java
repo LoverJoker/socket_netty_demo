@@ -18,6 +18,7 @@ public class RabbitMqConfig {
         return new Queue("socketQueue", true);
     }
 
+
     @Bean
     public FanoutExchange socketFanoutExchange() {
         return new FanoutExchange("socketFanoutExchange");

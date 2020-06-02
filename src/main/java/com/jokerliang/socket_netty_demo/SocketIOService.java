@@ -1,5 +1,7 @@
 package com.jokerliang.socket_netty_demo;
 
+import java.util.UUID;
+
 /**
  * 求贤若饥 虚心若愚
  *
@@ -19,5 +21,5 @@ public interface SocketIOService {
     void stop();
 
     // 推送信息
-    SocketPushResult pushMessage(String clientId, PushMessage pushMessage);
+    SocketPushResult pushMessage(UUID clientUuid, PushMessage pushMessage);
 }

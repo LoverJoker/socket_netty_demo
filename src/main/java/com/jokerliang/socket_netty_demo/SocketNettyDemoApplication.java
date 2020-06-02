@@ -9,8 +9,7 @@ import org.springframework.boot.rsocket.netty.NettyRSocketServer;
 @SpringBootApplication
 public class SocketNettyDemoApplication {
 
-    @Autowired
-    SocketIOService socketIOServer;
+
     public static void main(String[] args) {
         SpringApplication.run(SocketNettyDemoApplication.class, args);
 

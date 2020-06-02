@@ -2,6 +2,7 @@ package com.jokerliang.socket_netty_demo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -9,6 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.Redisson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +21,9 @@ import com.corundumstudio.socketio.SocketIOServer;
 @Service(value = "socketIOService")
 public class SocketIOServiceImpl implements SocketIOService {
 
-    // 用来存已连接的客户端
-    private static Map<String, SocketIOClient> clientMap = new ConcurrentHashMap<>();
+    @Autowired
+    private Redisson redisson;
+
 
     @Autowired
     private SocketIOServer socketIOServer;
@@ -50,7 +53,9 @@ public class SocketIOServiceImpl implements SocketIOService {
             String loginUserNum = getParamsByClient(client);
             log.info("客户端：" + loginUserNum + "已连接");
             if (loginUserNum != null) {
-                clientMap.put(loginUserNum, client);
+                UUID sessionId = client.getSessionId();
+                System.out.println("============");
+                System.out.println(sessionId);
             }
         });
 
@@ -58,7 +63,6 @@ public class SocketIOServiceImpl implements SocketIOService {
         socketIOServer.addDisconnectListener(client -> {
             String loginUserNum = getParamsByClient(client);
             if (loginUserNum != null) {
-                clientMap.remove(loginUserNum);
                 client.disconnect();
             }
         });
@@ -77,11 +81,11 @@ public class SocketIOServiceImpl implements SocketIOService {
     }
 
     @Override
-    public SocketPushResult pushMessage(String clientId, PushMessage pushMessage) {
-        SocketIOClient client = clientMap.get(clientId);
+    public SocketPushResult pushMessage(UUID clientUuid, PushMessage pushMessage) {
 
+        SocketIOClient client = socketIOServer.getClient(clientUuid);
         if (client == null) {
-            return new SocketPushResult(false, "客户端: " + clientId + "未连接");
+            return new SocketPushResult(false, "客户端未连接");
         }
 
         AtomicBoolean isSuccess = new AtomicBoolean(false);

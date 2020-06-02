@@ -50,8 +50,9 @@ public class TestController {
 
     private Boolean push(int count, String clientId, PushMessage pushMessage) {
 
+        UUID uuid = UUID.fromString(clientId);
         boolean isSuccess;
-        SocketPushResult socketPushResult = socketIOService.pushMessage(clientId, pushMessage);
+        SocketPushResult socketPushResult = socketIOService.pushMessage(uuid, pushMessage);
         isSuccess = socketPushResult.isSuccess();
         log.info(socketPushResult.getResult());
         if (isSuccess) {

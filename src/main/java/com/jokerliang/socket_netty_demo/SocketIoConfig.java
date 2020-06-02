@@ -1,6 +1,10 @@
 package com.jokerliang.socket_netty_demo;
 
 import com.corundumstudio.socketio.*;
+import com.corundumstudio.socketio.store.RedissonStoreFactory;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,6 +40,18 @@ public class SocketIoConfig {
         config.setTransports(Transport.POLLING, Transport.WEBSOCKET);
         config.setOrigin(":*:");
 
+
+        config.setStoreFactory(new RedissonStoreFactory(getRedisson()));
         return new SocketIOServer(config);
+    }
+
+    @Bean
+    public Redisson getRedisson() {
+        Config redissonConfig = new Config();
+        //redissonConfig.useSingleServer().setAddress(SINGLE_SERVER);
+        redissonConfig.useSingleServer().setAddress("redis://120.27.232.182:6379");
+
+        RedissonClient redissonClient = Redisson.create(redissonConfig);
+        return (Redisson) redissonClient;
     }
 }

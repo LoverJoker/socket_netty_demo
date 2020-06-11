@@ -49,7 +49,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
         //
         if (true) {
-            String deviceCode = result;
+            String deviceCode = DEVICE_CODE_FILED_NAME;
             session.setAttribute(DEVICE_CODE_FILED_NAME, DEVICE_CODE_FILED_NAME);
             clientMap.remove(deviceCode);
             clientMap.put(deviceCode, session);

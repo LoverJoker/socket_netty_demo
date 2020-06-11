@@ -74,12 +74,12 @@ public class ServerMessageHandler extends IoHandlerAdapter {
     private static void sendMessage(IoSession session, String message) {
         log.info("发送消息:" + message);
 
-        byte[] responseByteArray = ByteUtils.hexStr2Byte(message);
-       // byte[] responseByteArray = message.getBytes(StandardCharsets.UTF_8);
-        IoBuffer responseIoBuffer = IoBuffer.allocate(responseByteArray.length);
-        responseIoBuffer.put(responseByteArray);
-        responseIoBuffer.flip();
-        session.write(responseIoBuffer);
+         byte[] responseByteArray = ByteUtils.hexStr2Byte(message);
+        // byte[] responseByteArray = message.getBytes(StandardCharsets.UTF_8);
+//        IoBuffer responseIoBuffer = IoBuffer.allocate(responseByteArray.length);
+//        responseIoBuffer.put(responseByteArray);
+//        responseIoBuffer.flip();
+        session.write(responseByteArray);
     }
 
 

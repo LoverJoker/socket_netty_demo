@@ -70,5 +70,9 @@ public class ByteUtils {
         }
         return hex.toUpperCase(Locale.getDefault());
     }
+
+    public static void main(String[] args) {
+        byte[] responseByteArray = ByteUtils.hexStr2Byte("AA03010103DD");
+    }
 }
 

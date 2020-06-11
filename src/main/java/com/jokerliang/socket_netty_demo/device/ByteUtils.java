@@ -1,4 +1,4 @@
-package com.jokerliang.socket_netty_demo;
+package com.jokerliang.socket_netty_demo.device;
 
 import java.nio.ByteBuffer;
 import java.util.Locale;
@@ -7,7 +7,7 @@ import java.util.Locale;
  *
  * @author hncks
  */
-class ByteUtils {
+public class ByteUtils {
 
     /**
      * 十六进制字符串转byte[]

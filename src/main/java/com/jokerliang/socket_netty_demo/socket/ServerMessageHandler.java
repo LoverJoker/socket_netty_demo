@@ -57,7 +57,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
 
         log.info("接收到消息: " + result);
-
+        // 发送查询连接
+        sendMessage(session, "AA03010103DD");
     }
 
     public static Boolean sendMessage(String deviceCode, String message) {

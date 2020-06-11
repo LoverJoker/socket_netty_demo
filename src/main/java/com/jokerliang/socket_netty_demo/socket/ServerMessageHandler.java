@@ -34,7 +34,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
         log.info("[服务建立]" + session.getId());
         // 服务建立后发送设备号的指令
-        sendMessage(session, "AA03010103DD");
+        // sendMessage(session, "AA03010103DD");
 
 
     }
@@ -46,8 +46,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         IoBuffer inBuf = (IoBuffer) message;
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());
-        String result = new String(inbytes, StandardCharsets.UTF_8);
 
+        String result = ByteUtils.byteArrayToHexString(inbytes);
         //
         if (true) {
             String deviceCode = DEVICE_CODE_FILED_NAME;

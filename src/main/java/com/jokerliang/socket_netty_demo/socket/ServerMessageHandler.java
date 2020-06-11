@@ -8,6 +8,7 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.springframework.stereotype.Component;
 
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,10 +34,18 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         log.info("[服务建立]" + session.getId());
         // 服务建立后发送设备号的指令
         sendMessage(session, "AA03010103DD");
+
+
     }
 
     @Override
     public void messageReceived(IoSession session, Object message) throws Exception {
+        SocketAddress serviceAddress = session.getServiceAddress();
+        log.info("serviceAddress" + serviceAddress.toString());
+        SocketAddress remoteAddress = session.getRemoteAddress();
+        log.info("remoteAddress" + remoteAddress.toString());
+        SocketAddress localAddress = session.getLocalAddress();
+        log.info("localAddress" + remoteAddress.toString());
         IoBuffer inBuf = (IoBuffer) message;
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());
@@ -45,7 +54,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         //
         if (true) {
             String deviceCode = result;
-            session.setAttribute("deviceCode", DEVICE_CODE_FILED_NAME);
+            session.setAttribute(DEVICE_CODE_FILED_NAME, DEVICE_CODE_FILED_NAME);
             clientMap.remove(deviceCode);
             clientMap.put(deviceCode, session);
         }

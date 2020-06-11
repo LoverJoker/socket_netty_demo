@@ -46,7 +46,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         IoBuffer inBuf = (IoBuffer) message;
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());
-
+        String resultText = new String(inbytes, StandardCharsets.UTF_8);
         String result = ByteUtils.byteArrayToHexString(inbytes);
         //
         if (true) {
@@ -56,8 +56,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
             clientMap.put(deviceCode, session);
         }
 
-
-        log.info("接收到消息: " + result);
+        log.info("接收到消息: " + result + "--Text" + resultText);
     }
 
     public static Boolean sendMessage(String deviceCode, String message) {

@@ -6,6 +6,7 @@ services:
     ports:
       - 8769:8769
       - 8766:8766
+      - 8768:8768
     container_name: socket-netty-test
     volumes:
       - /root/socketNettyDemo:/socketNettyDemo

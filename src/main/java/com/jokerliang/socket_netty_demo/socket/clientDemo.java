@@ -8,7 +8,7 @@ import java.net.Socket;
 public class clientDemo {
     public static void main(String[] args) throws IOException {
         int serverPort = 8768;
-        Socket socket = new Socket("192.168.31.57", serverPort);
+        Socket socket = new Socket("120.27.232.182", serverPort);
         OutputStream outputStream = socket.getOutputStream();
         InputStream inputStream = socket.getInputStream();
         outputStream.write("中文2".getBytes("UTF-8"));

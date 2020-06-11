@@ -1,5 +1,6 @@
 package com.jokerliang.socket_netty_demo.socket;
 
+import com.jokerliang.socket_netty_demo.device.ByteUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
@@ -72,7 +73,9 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
     private static void sendMessage(IoSession session, String message) {
         log.info("发送消息:" + message);
-        byte[] responseByteArray = message.getBytes(StandardCharsets.UTF_8);
+
+        byte[] responseByteArray = ByteUtils.hexStr2Byte(message);
+       // byte[] responseByteArray = message.getBytes(StandardCharsets.UTF_8);
         IoBuffer responseIoBuffer = IoBuffer.allocate(responseByteArray.length);
         responseIoBuffer.put(responseByteArray);
         responseIoBuffer.flip();

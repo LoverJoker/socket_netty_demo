@@ -28,7 +28,8 @@ import java.util.UUID;
 @RestController
 public class TestController {
 
-
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
@@ -56,6 +57,11 @@ public class TestController {
      */
     @GetMapping("/test")
     public String test (String cmd) {
+        ReceiveLog receiveLog = new ReceiveLog();
+        Date date = new Date();
+        receiveLog.setDate(date);
+        receiveLog.setMsg("测试11");
+        mongoTemplate.insert(receiveLog);
         ServerMessageHandler.sendMessage(ServerMessageHandler.DEVICE_CODE_FILED_NAME, cmd);
         return "success";
     }

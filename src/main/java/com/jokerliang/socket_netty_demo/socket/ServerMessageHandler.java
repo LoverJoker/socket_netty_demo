@@ -19,7 +19,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
     private static final ConcurrentHashMap<String, IoSession> clientMap = new ConcurrentHashMap<>();
 
 
-    private static final String DEVICE_CODE_FILED_NAME = "deviceCode";
+    public static final String DEVICE_CODE_FILED_NAME = "deviceCode";
 
     @Override
     public void sessionCreated(IoSession session) throws Exception { //用户连接到服务器
@@ -91,7 +91,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
     @Override
     public void messageSent(IoSession session, Object message){ //发送消息结束
-        log.info("[发送消息结束]" + session.getId() + "message" + message);
+       // log.info("[发送消息结束]" + session.getId() + "message" + message);
     }
 
     /**

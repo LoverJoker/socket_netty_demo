@@ -1,6 +1,7 @@
 package com.jokerliang.socket_netty_demo;
 
 
+import com.jokerliang.socket_netty_demo.socket.ServerMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,12 +50,11 @@ public class TestController {
 
     /**
      * 当有一条消息需要发送到客户端的时候，应该首先发送给rabbitMq, 然后由rabbitMq分发到相应的服务端
-     * @param deviceCode
      * @return
      */
     @GetMapping("/test")
-    public String test (String deviceCode) {
-
+    public String test (String cmd) {
+        ServerMessageHandler.sendMessage(ServerMessageHandler.DEVICE_CODE_FILED_NAME, cmd);
         return "success";
     }
 

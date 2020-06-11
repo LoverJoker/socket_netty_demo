@@ -1,5 +1,6 @@
 package com.jokerliang.socket_netty_demo.socket;
 
+import com.jokerliang.socket_netty_demo.ReceiveLog;
 import com.jokerliang.socket_netty_demo.device.ByteUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.mina.core.buffer.IoBuffer;
@@ -7,15 +8,21 @@ import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.transport.socket.SocketSessionConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
 import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
 public class ServerMessageHandler extends IoHandlerAdapter {
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     private static final ConcurrentHashMap<String, IoSession> clientMap = new ConcurrentHashMap<>();
 
@@ -57,6 +64,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         }
 
         log.info("接收到消息: " + result + "--Text" + resultText);
+        saveReceiveLog(result);
     }
 
     public static Boolean sendMessage(String deviceCode, String message) {
@@ -113,5 +121,12 @@ public class ServerMessageHandler extends IoHandlerAdapter {
     }
 
 
+    private void saveReceiveLog(String message) {
+        ReceiveLog receiveLog = new ReceiveLog();
+        Date date = new Date();
+        receiveLog.setDate(date);
+        receiveLog.setMsg(message);
+        mongoTemplate.insert(receiveLog);
+    }
 
 }

@@ -10,5 +10,6 @@ services:
     container_name: socket-netty-test
     volumes:
       - /root/socketNettyDemo:/socketNettyDemo
+      - /etc/localtime:/etc/localtime
     working_dir: /socketNettyDemo
     command: java -jar ./target/socket_netty_demo-0.0.1-SNAPSHOT.jar

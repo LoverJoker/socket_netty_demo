@@ -40,12 +40,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
     @Override
     public void messageReceived(IoSession session, Object message) throws Exception {
-        SocketAddress serviceAddress = session.getServiceAddress();
-        log.info("serviceAddress" + serviceAddress.toString());
         SocketAddress remoteAddress = session.getRemoteAddress();
         log.info("remoteAddress" + remoteAddress.toString());
-        SocketAddress localAddress = session.getLocalAddress();
-        log.info("localAddress" + remoteAddress.toString());
         IoBuffer inBuf = (IoBuffer) message;
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());

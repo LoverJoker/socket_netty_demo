@@ -79,7 +79,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 //        IoBuffer responseIoBuffer = IoBuffer.allocate(responseByteArray.length);
 //        responseIoBuffer.put(responseByteArray);
 //        responseIoBuffer.flip();
-        session.write(responseByteArray);
+        session.write(IoBuffer.wrap(responseByteArray));
     }
 
 

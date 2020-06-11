@@ -37,7 +37,7 @@ public class MinaConfig {
 //        heartBeat.setRequestInterval(15 * 60);//心跳15分钟超时
 //        nioSocketAcceptor.getFilterChain().addLast("heartbeat", heartBeat);
         nioSocketAcceptor.bind(new InetSocketAddress(serverPort));
-        log.info("Mina启动了");
+        log.info("正在启动Mina：端口：" + serverPort);
         return nioSocketAcceptor;
     }
 

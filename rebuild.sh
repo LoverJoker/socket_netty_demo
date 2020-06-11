@@ -7,3 +7,4 @@ docker run --rm -v /root/socketNettyDemo:/socketNettyDemo -v /root/.m2:/root/.m2
 
 docker-compose restart
 
+tail -f ./logs/spring.log

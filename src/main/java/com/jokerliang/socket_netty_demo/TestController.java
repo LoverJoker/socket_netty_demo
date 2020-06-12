@@ -1,6 +1,7 @@
 package com.jokerliang.socket_netty_demo;
 
 
+import com.jokerliang.socket_netty_demo.device.DeviceDeal;
 import com.jokerliang.socket_netty_demo.socket.ServerMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,15 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 求贤若饥 虚心若愚
@@ -67,6 +67,16 @@ public class TestController {
     }
 
 
+    @GetMapping("/all")
+    @ResponseBody
+    public List<ReceiveLog> findAll() {
+        List<ReceiveLog> all = mongoTemplate.findAll(ReceiveLog.class);
+        return all;
+    }
 
+    public static void main(String[] args) {
+        String a = "48FF6D068065575226480867";
+
+    }
 
 }

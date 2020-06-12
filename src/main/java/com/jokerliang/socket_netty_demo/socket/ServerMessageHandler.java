@@ -2,6 +2,7 @@ package com.jokerliang.socket_netty_demo.socket;
 
 import com.jokerliang.socket_netty_demo.ReceiveLog;
 import com.jokerliang.socket_netty_demo.device.ByteUtils;
+import com.jokerliang.socket_netty_demo.device.DeviceDeal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
@@ -16,6 +17,10 @@ import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.jokerliang.socket_netty_demo.device.DeviceDeal.Type;
+import static com.jokerliang.socket_netty_demo.device.DeviceDeal.Command;
+import static com.jokerliang.socket_netty_demo.device.DeviceDeal.Analysis;
 
 @Slf4j
 @Component
@@ -41,13 +46,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
         log.info("[服务建立]" + session.getId());
         // 服务建立后发送设备号的指令
-        // sendMessage(session, "AA03010103DD");
-        if (true) {
-            String deviceCode = DEVICE_CODE_FILED_NAME;
-            session.setAttribute(DEVICE_CODE_FILED_NAME, DEVICE_CODE_FILED_NAME);
-            clientMap.remove(deviceCode);
-            clientMap.put(deviceCode, session);
-        }
+        sendMessage(session, DeviceDeal.Command.query());
 
     }
 
@@ -58,18 +57,27 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         IoBuffer inBuf = (IoBuffer) message;
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());
-        String resultText = new String(inbytes, StandardCharsets.UTF_8);
-        String result = ByteUtils.byteArrayToHexString(inbytes);
-        //
-        if (true) {
-            String deviceCode = DEVICE_CODE_FILED_NAME;
-            session.setAttribute(DEVICE_CODE_FILED_NAME, DEVICE_CODE_FILED_NAME);
-            clientMap.remove(deviceCode);
-            clientMap.put(deviceCode, session);
+//        String resultText = new String(inbytes, StandardCharsets.UTF_8);
+        String command = ByteUtils.byteArrayToHexString(inbytes);
+
+        String type = DeviceDeal.Analysis.getType(command);
+
+        switch (type) {
+            case Type.QUERY_DEVICE:
+                String deviceCode = Analysis.getDeviceCode(command);
+                session.setAttribute(deviceCode, DEVICE_CODE_FILED_NAME);
+                clientMap.remove(deviceCode);
+                clientMap.put(deviceCode, session);
+                break;
+            case Type.DEVICE_UPDATE_STATUS:
+                break;
         }
 
-        log.info("接收到消息: " + result + "--Text" + resultText);
-        saveReceiveLog(result);
+
+
+
+        log.info("接收到消息: " + command);
+
     }
 
     public static Boolean sendMessage(String deviceCode, String message) {
@@ -107,31 +115,13 @@ public class ServerMessageHandler extends IoHandlerAdapter {
        // log.info("[发送消息结束]" + session.getId() + "message" + message);
     }
 
-    /**
-     * 这个方法在IoSession 的通道进入空闲状态时调用
-     * @param session
-     * @param status
-     * @throws Exception
-     */
-    @Override
-    public void sessionIdle(IoSession session, IdleStatus status)throws Exception {//重连
-        // log.info("[服务重连]" + session.getId() + "status" + status.toString());
-    }
+
 
     @Override
     public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
         super.exceptionCaught(session, cause);
         log.error("服务异常" + session.getId());
         cause.printStackTrace();
-    }
-
-
-    private void saveReceiveLog(String message) {
-        ReceiveLog receiveLog = new ReceiveLog();
-        Date date = new Date();
-        receiveLog.setDate(date);
-        receiveLog.setMsg(message);
-        mongoTemplate.insert(receiveLog);
     }
 
 }

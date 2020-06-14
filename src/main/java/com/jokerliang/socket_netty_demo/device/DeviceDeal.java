@@ -2,6 +2,10 @@ package com.jokerliang.socket_netty_demo.device;
 
 import lombok.Data;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 /**
  * 求贤若饥 虚心若愚
  *
@@ -61,7 +65,7 @@ public class DeviceDeal {
         return command.toString();
     }
 
-    private String getBCC() {
+    public String getBCC() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(getLength());
         stringBuilder.append(getIndex());
@@ -93,14 +97,28 @@ public class DeviceDeal {
         return cmd.substring(8, cmd.length() - 4);
     }
 
-
-
-    public static void main(String[] args) {
-        String s = Command.query();
-        System.out.println(s);
+    private static String addZero(String n) {
+        if (n.length() < 2) {
+            return "0" + n;
+        }
+        return n;
     }
 
 
+    public static void main(String[] args) throws Exception {
+        Command.update1();
+        //Command.query2();
+
+
+
+    }
+
+
+    public static String toBinary(int num, int digits) {
+        String cover = Integer.toBinaryString(1 << digits).substring(1);
+        String s = Integer.toBinaryString(num);
+        return s.length() < digits ? cover.substring(s.length()) + s : s;
+    }
 
     public static class Type {
         private Type(){}
@@ -121,15 +139,196 @@ public class DeviceDeal {
             return deviceDeal.getCommand(Type.QUERY_DEVICE, "00");
         }
 
-        /**
-         * 数据包下载
-         * @return
-         */
-        public static String downUpdatePackage() {
-            DeviceDeal deviceDeal = new DeviceDeal();
-            return deviceDeal.getCommand(Type.DOWN, "");
+        public static void query2() {
+            byte head = (byte) 0XAA;
+            byte index = 0X01;
+            byte cmd = 0X01;
+            byte end = (byte) 0xDD;
+            byte data = 0;
+            byte length = 1 + 1 + 1;
+            byte[] checkData = new byte[4];
+            checkData[0] = length;
+            checkData[1] = index;
+            checkData[2] = cmd;
+            checkData[3] = data;
+            byte[] check = getBCC(checkData);
+
+            ArrayList<Byte> bytes = new ArrayList<>();
+            bytes.add(head);
+            bytes.add(length);
+            bytes.add(index);
+            bytes.add(cmd);
+            for (byte b : check) {
+                bytes.add(b);
+            }
+            bytes.add(end);
+
+            Byte[] bytes1 = bytes.toArray(new Byte[bytes.size()]);
+
+
+            System.out.println(ByteUtils.byteArrayToHexString(toPrimitives(bytes1)));
         }
 
+
+        public static byte[] toPrimitives(Byte[] oBytes){
+            byte[] bytes = new byte[oBytes.length];
+
+            for(int i = 0; i < oBytes.length; i++) {
+                bytes[i] = oBytes[i];
+            }
+
+            return bytes;
+        }
+
+
+        public static void update() throws Exception {
+            String downFileName = "NDJ_DCW_V1.0.0.bin";
+
+            File file = new File("src/main/resources/" + downFileName);
+            // 先切
+            LinkedList<byte[]> bytes = FileSplitUtils.split(file, 512);
+
+            String head = "AA";
+            String length = "";
+            String index = "01";
+            String cmd = "CD";
+            String frameLength = "";
+            // 下面这里就算data了
+            String subCmd = "01";
+            String fileName = downFileName.substring(0, downFileName.lastIndexOf("."));
+            String nameLength = fileName.length()+ "";
+            String packageSum =  file.length()%512==0?file.length()/512 + "":file.length()/512+1 + "";
+            String fileSize = file.length() + "";
+            for (int i = 0; i< bytes.size(); i++) {
+                byte[] byteData = bytes.get(i);
+                String dataLength = byteData.length + "";
+                String packetNum = i + 1 + "";
+                String fileData = ByteUtils.byteArrayToHexString(byteData);
+
+            }
+
+        }
+
+        public static void update1() throws IOException {
+            String downFileName = "NDJ_DCW_V1.0.0.bin";
+            File file = new File("src/main/resources/" + downFileName);
+            String fileNames = downFileName.substring(0, downFileName.lastIndexOf("."));
+            LinkedList<byte[]> bytes = FileSplitUtils.split(file, 512);
+
+
+            byte head = (byte) 0XAA;
+            byte index = (byte) 0X01;
+            byte cmd = (byte) 0XCD;
+            byte subCmd = (byte) 0X01;
+            byte nameLength = (byte) fileNames.length();
+            byte[] fileName = fileNames.getBytes();
+            byte fileSize = (byte) file.length();
+            byte packetSum = (byte) (file.length()%512==0?file.length()/512 :file.length()/512+1);
+
+            for (int i = 0; i< bytes.size(); i++) {
+                ArrayList<Byte> all = new ArrayList<>();
+                byte[] fileData = bytes.get(i);
+                byte packetNum = (byte) (i + 1);
+                byte dataLength = (byte) fileData.length;
+
+
+                byte length = (byte) 0XFF;
+                byte frameLength = (byte) (2 + 1 + 1 + fileName.length + 2 + 2 + 2 + 2 + fileData.length + 1);
+                //byte check = length + index + cmd + frameLength + subCmd + nameLength + fileName + fileSize + packetSum + packetNum + dataLength + fileData;
+                ArrayList<Byte> checkByte = new ArrayList<>();
+                checkByte.add(length);
+                checkByte.add(index);
+                checkByte.add(cmd);
+                // 这里开始是 data
+                checkByte.add(frameLength);
+                checkByte.add(subCmd);
+                checkByte.add(nameLength);
+                for (byte b : fileName) {
+                    checkByte.add(b);
+                }
+                checkByte.add(fileSize);
+                checkByte.add(packetSum);
+                checkByte.add(packetNum);
+                checkByte.add(dataLength);
+                for (byte b : fileData) {
+                    checkByte.add(b);
+                }
+                byte[] check = getBCC(toPrimitives(checkByte.toArray(new Byte[checkByte.size()])));
+
+
+
+                byte end = (byte) 0XDD;
+
+
+                all.add(head);
+                all.add(length);
+                all.add(index);
+                all.add(cmd);
+                all.add(frameLength);
+                all.add(subCmd);
+                all.add(nameLength);
+                for (byte b : fileName) {
+                    all.add(b);
+                }
+                all.add(fileSize);
+                all.add(packetSum);
+                all.add(packetNum);
+                all.add(dataLength);
+                for (byte fileDatum : fileData) {
+                    all.add(fileDatum);
+                }
+
+                for (byte b : check) {
+                    all.add(b);
+                }
+                all.add(end);
+
+                Byte[] bytes1 = all.toArray(new Byte[all.size()]);
+
+                String s = ByteUtils.byteArrayToHexString(toPrimitives(bytes1));
+                System.out.println(s);
+                System.out.println("");
+            }
+
+            System.out.println(bytes.size());
+        }
+
+        public static byte[] getBCC(byte[] data) {
+
+            String ret = "";
+            byte BCC[] = new byte[1];
+            for (int i = 0; i < data.length; i++) {
+                BCC[0] = (byte) (BCC[0] ^ data[i]);
+            }
+            String hex = Integer.toHexString(BCC[0] & 0xFF);
+            if (hex.length() == 1) {
+                hex = '0' + hex;
+            }
+            ret += hex.toUpperCase();
+            byte[] bytes = ByteUtils.hexStr2Byte(ret);
+            return bytes;
+        }
+
+
+        private static String getPacketSum(Long length) {
+            int packageSum = 0;
+            if (length % 500 == 0) {
+                packageSum = (int) (length / 500);
+            } else {
+                packageSum = (int) (Math.floor(length / 500) + 1);
+            }
+            return packageSum + "";
+        }
+
+        /**
+         * 3.1.2 应答主办主动上传状态
+         * @return
+         */
+        public static String reBackHeat() {
+            DeviceDeal deviceDeal = new DeviceDeal();
+
+            return deviceDeal.getCommand(Type.DEVICE_UPDATE_STATUS, "00");
+        }
     }
 
     public static class Analysis {

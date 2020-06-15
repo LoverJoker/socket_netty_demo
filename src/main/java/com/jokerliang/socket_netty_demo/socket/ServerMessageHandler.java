@@ -64,6 +64,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         if (session.getAttribute(DEVICE_CODE_FILED_NAME) != null) {
             String deviceCode = (String) session.getAttribute(DEVICE_CODE_FILED_NAME);
             log.info("当前通过 session取得的设备号:" + deviceCode);
+
         }
         switch (type) {
             case CommandType.QUERY:

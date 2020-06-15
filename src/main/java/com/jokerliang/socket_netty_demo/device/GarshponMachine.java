@@ -1,8 +1,12 @@
 package com.jokerliang.socket_netty_demo.device;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
@@ -11,6 +15,7 @@ import java.util.LinkedList;
  * @author jokerliang
  * @date 2020-06-14 11:07
  */
+@Slf4j
 public class GarshponMachine {
     public static byte head = (byte) 0XAA;
     public static byte index = (byte) 0X01;
@@ -91,6 +96,39 @@ public class GarshponMachine {
         byte[] bys = ArrayListToByteArray(bytes);
         return bys;
     }
+
+    /**
+     * 如果是单字节需要补充到双字节
+     * @return
+     */
+    public static byte[] getWord(byte[] byteData) {
+        if (byteData.length < 2) {
+            byte[] bytes = new byte[2];
+            bytes[0] = byteData[0];
+            bytes[1] = 0X00;
+            return bytes;
+        } else {
+            return byteData;
+        }
+    }
+
+    /**
+     * 这个传进来的是10进制
+     * @param data
+     * @return
+     */
+    public static byte[] getWord(int data) {
+        String s = Integer.toHexString(data);
+        byte[] bytes = ByteUtils.hexStr2Byte(s);
+        return getWord(bytes);
+    }
+
+    public static byte[] getWord(long data) {
+        String s = Long.toHexString(data);
+        byte[] bytes = ByteUtils.hexStr2Byte(s);
+        return getWord(bytes);
+    }
+
     public static class Update {
 
         /**
@@ -108,21 +146,35 @@ public class GarshponMachine {
             byte subCommand = 0X01;
             byte nameLength = (byte) fileNameStr.length();
             byte[] fileName = fileNameStr.getBytes();
-            byte fileSize = (byte) sourceFile.length();
-            byte packetSum = (byte) (sourceFile.length()%512==0?sourceFile.length()/512 :sourceFile.length()/512+1);
+            byte[] fileSize = getWord(sourceFile.length());
+            byte[] packetSum = getWord((sourceFile.length()%512==0?sourceFile.length()/512 :sourceFile.length()/512+1));
             byte length = (byte) 0XFF;
 
             for (int i = 0; i < fileBytes.size(); i++) {
-                byte[] fileData = fileBytes.get(i);
-                byte packetNum = (byte) (i + 1);
-                byte dataLength = (byte) fileData.length;
-                byte frameLength = (byte) (2 + 1 + 1 + fileName.length + 2 + 2 + 2 + 2 + fileData.length + 1);
+//                byte[] fileData = new byte[1];
+//                fileData[0] = 0x01;
+                byte[] fileData = fileData = fileBytes.get(i);
+                byte[] packetNum = getWord((i + 1));
+                byte[] dataLength = getWord(fileData.length);
+                byte[] frameLength = getWord((2 + 1 + 1 + fileName.length + 2 + 2 + 2 + 2 + fileData.length + 1));
                 byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileSize, packetSum, packetNum, dataLength, fileData);
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
 
                 if (i == 0 ) {
-                    System.out.println(ByteUtils.byteArrayToHexString(command));
+
+                    log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
+                    log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
+                    log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
+                    log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
+                    log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
+                    log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
+                    log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
+                    log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
+                    log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
+                    log.info("完整的command: " + ByteUtils.byteArrayToHexString(command));
+
+
                 }
                 returnByte.add(command);
             }
@@ -177,11 +229,44 @@ public class GarshponMachine {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-       //GarshponMachine.Update.down();
-        //byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
-//         GarshponMachine.Query.getDeviceCodeFormCommand("AA 11 02 01 D90F 48FF6D068065575226480867 F9DD");
 
+    public static void main(String[] args) throws IOException {
+        Update.down();
 
     }
+
+//    private static HashMap<String, byte[]> clientMessage = new HashMap<>();
+//    public static void main(String[] args) throws IOException {
+//       //GarshponMachine.Update.down();
+//        //byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
+////         GarshponMachine.Query.getDeviceCodeFormCommand("AA 11 02 01 D90F 48FF6D068065575226480867 F9DD");
+//        byte[] test = ByteUtils.hexStr2Byte("AA110201D90F48FF6D0680655752");
+//        // 26480867F9DD
+//
+//        // 先判断这个命令是不是以DD结尾
+//        String s = ByteUtils.byteArrayToHexString(test);
+//
+//        // 判断是否是 AA 开头， DD结尾
+//
+//        if (s.startsWith("AA") && s.endsWith("DD")) {
+//            // 表示这个是个完整命令
+//            System.out.println(test);
+//        } else if (s.startsWith("AA")) {
+//            // 表示这只是个开头
+//            // 存到cache里面, 如果是AA开头直接存就好
+//            clientMessage.put("deviceCode", test);
+//        } else if (s.endsWith("DD")) {
+//            // 表示 这是个结尾
+//            byte[] cache = clientMessage.get("deviceCode");
+//            // 拼起来，并且清空cache
+//            clientMessage.remove("deviceCode");
+//
+//            byte[] bytes = ArrayUtils.addAll(cache, test);
+//            System.out.println(bytes);
+//        } else {
+//            // 如果既不是开头也不是结尾，那么直接拼起来
+//
+//        }
+//
+//    }
 }

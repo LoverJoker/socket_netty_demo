@@ -58,7 +58,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());
         String commandStr = ByteUtils.byteArrayToHexString(inbytes);
-
+        log.info("接收到消息: " + commandStr);
         byte type = CommandType.getType(inbytes);
 
         if (session.getAttribute(DEVICE_CODE_FILED_NAME) != null) {
@@ -82,7 +82,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
 
 
-        log.info("接收到消息: " + commandStr);
+
 
     }
 

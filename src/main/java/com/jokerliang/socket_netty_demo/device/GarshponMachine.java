@@ -233,6 +233,7 @@ public class GarshponMachine {
     public static void main(String[] args) throws IOException {
         Update.down();
 
+        //AA FF 01 CD 1C00 01 0E 4E444A5F4443575F56312E302E3050682900010001000130DD
     }
 
 //    private static HashMap<String, byte[]> clientMessage = new HashMap<>();

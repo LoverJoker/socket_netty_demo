@@ -5,6 +5,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -97,6 +98,32 @@ public class GarshponMachine {
         return bys;
     }
 
+
+    /**
+     * 裁切数据
+     * @param command
+     * @param start
+     * @param end
+     * @return
+     */
+    public static byte[] subData(byte[] command, int start, int end) {
+        return ArrayUtils.subarray(command, start, end);
+    }
+
+    /**
+     * 倒着裁切, 注意 start 也是倒着来的，最后一个就是0
+     * @param command
+     * @param start
+     * @param end
+     * @return
+     */
+    public static byte[] lastSubData(byte[] command, int start, int end) {
+        ArrayUtils.reverse(command);
+        byte[] subarray = ArrayUtils.subarray(command, start, end);
+        ArrayUtils.reverse(subarray);
+        return subarray;
+    }
+
     /**
      * 如果是单字节需要补充到双字节
      * @return
@@ -132,6 +159,44 @@ public class GarshponMachine {
     public static class Update {
 
         /**
+         * 这个main方法有所有参数的解析，做个备份
+         *  public static void main(String[] args) throws IOException {
+         *         int i = Integer.parseInt("0E", 16);
+         *         System.out.println(i);
+         * //       GarshponMachine.Update.down();
+         *         //byte type = CommandType.getType(ByteUtils.hexStr2Byte("".trim()));
+         *         String deviceCode = Query.getDeviceCodeFormCommand(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD"));
+         *
+         *         // 48FF6D068065575226480867
+         *         System.out.println("AA 1A 02 CD 01 0E 4E444A5F4443575F56312E302E30 5068 2900 0100 02 BF DD");
+         *
+         *         // AA1A02CD010E4E444A5F4443575F56312E302E3050682900010002BFDD
+         *         byte[] test = ByteUtils.hexStr2Byte("AA1A02CD010E4E444A5F4443575F56312E302E3050682900010002BFDD");
+         *
+         *         // AA1A02CD010E4E444A5F4443575F56312E302E3050682900 0100 02 BF DD
+         *
+         *         System.out.println("cmd:" + ByteUtils.byteArrayToHexString(subData(test, 3, 4)));
+         *         System.out.println("subCmd:" + ByteUtils.byteArrayToHexString(subData(test, 4, 5)));
+         *         byte[] nameLength = subData(test, 5, 6);
+         *         System.out.println("nameLength:" + ByteUtils.byteArrayToHexString(nameLength));
+         *         int nameLengthInt = Integer.parseInt(ByteUtils.byteArrayToHexString(nameLength), 16);
+         *         byte[] fileNameData = subData(test, 6, 6 + nameLengthInt);
+         *         System.out.println("fileName:" + ByteUtils.byteArrayToHexString(fileNameData));
+         *         String s = new String(fileNameData, StandardCharsets.UTF_8);
+         *         System.out.println(s);
+         *         System.out.println("fileSize:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt, 6 + nameLengthInt + 2)));
+         *         System.out.println("packSum:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2, 6 + nameLengthInt + 2 + 2)));
+         *         System.out.println("packNum:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2)));
+         *         System.out.println("fileResult:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2 + 1)));
+         *         System.out.println("check:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2 + 2 + 1, 6 + nameLengthInt + 2 + 2 + 2 + 1)));
+         *
+         *
+         *         String fileResult = Update.getFileResult(test);
+         *         System.out.println(fileResult);
+         *     }
+         */
+
+        /**
          * 数据包下载
          */
         public static ArrayList<byte[]> down() throws IOException {
@@ -157,7 +222,8 @@ public class GarshponMachine {
                 byte[] packetNum = getWord((i + 1));
                 byte[] dataLength = getWord(fileData.length);
                 byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);
-                byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileSize, packetSum, packetNum, dataLength, fileData);
+//                byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileSize, packetSum, packetNum, dataLength, fileData);
+                byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileName, fileSize, packetSum, packetNum, dataLength, fileData);
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
 
@@ -180,6 +246,21 @@ public class GarshponMachine {
             }
             return returnByte;
         }
+
+        public static String getFileResult(byte[] command) {
+            byte[] nameLength = subData(command, 5, 6);
+            int nameLengthInt = Integer.parseInt(ByteUtils.byteArrayToHexString(nameLength), 16);
+            byte[] bytes = subData(command, 6 + nameLengthInt + 2 + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2 + 1);
+            return ByteUtils.byteArrayToHexString(bytes);
+        }
+
+        public static int getPacketNum(byte[] command) {
+            byte[] nameLength = subData(command, 5, 6);
+            int nameLengthInt = Integer.parseInt(ByteUtils.byteArrayToHexString(nameLength), 16);
+            byte[] bytes = subData(command, 6 + nameLengthInt + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2);
+            ArrayUtils.reverse(bytes);
+            return Integer.parseInt(ByteUtils.byteArrayToHexString(bytes));
+        }
     }
 
     public static class Query {
@@ -195,29 +276,10 @@ public class GarshponMachine {
         }
 
         public static String getDeviceCodeFormCommand(byte[] command) {
-            ArrayList<Byte> bbb = new ArrayList<>();
-
-            for (int i = 0; i < command.length; i++) {
-                if (i > 6-1 && i <= 18-1) {
-                    bbb.add(command[i]);
-                }
-            }
-
-            byte[] bytes1 = ArrayListToByteArray(bbb);
-            return ByteUtils.byteArrayToHexString(bytes1);
+            byte[] bytes = subData(command, 6, 18);
+            return ByteUtils.byteArrayToHexString(bytes);
         }
 
-//        public static void getDeviceCodeFormCommand(byte[] command) {
-//            ArrayList<Byte> bbb = new ArrayList<>();
-//
-//            for (int i = 0; i < command.length; i++) {
-//                if (i > 6-1 && i <= 18-1) {
-//                    bbb.add(command[i]);
-//                }
-//            }
-//
-//            byte[] bytes1 = ArrayListToByteArray(bbb);
-//        }
     }
 
     public static class CommandType {
@@ -229,29 +291,36 @@ public class GarshponMachine {
         }
     }
 
-
-//    public static void main(String[] args) throws IOException {
-//        Update.down();
-//
-//        //AA FF 01 CD 1C00 01 0E 4E444A5F4443575F56312E302E3050682900010001000130DD
-//    }
-
-
     public static void main(String[] args) throws IOException {
-       GarshponMachine.Update.down();
-        //byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
-//         GarshponMachine.Query.getDeviceCodeFormCommand("AA 11 02 01 D90F 48FF6D068065575226480867 F9DD");
-//        byte[] test = ByteUtils.hexStr2Byte("AA110201D90F48FF6D0680655752");
-//        // 26480867F9DD
-//
-//        // 先判断这个命令是不是以DD结尾
-//
-//
-//        // 判断是否是 AA 开头， DD结尾
-//
-//        test(test);
-//        test(ByteUtils.hexStr2Byte("26480867"));
-//        test(ByteUtils.hexStr2Byte("F9DD"));
+        int i = Integer.parseInt("0E", 16);
+        System.out.println(i);
+//       GarshponMachine.Update.down();
+        //byte type = CommandType.getType(ByteUtils.hexStr2Byte("".trim()));
+        String deviceCode = Query.getDeviceCodeFormCommand(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD"));
+
+        // 48FF6D068065575226480867
+        System.out.println("AA 1A 02 CD 01 0E 4E444A5F4443575F56312E302E30 5068 2900 0100 02 BF DD");
+
+        // AA1A02CD010E4E444A5F4443575F56312E302E3050682900010002BFDD
+        byte[] test = ByteUtils.hexStr2Byte("AA1A02CD010E4E444A5F4443575F56312E302E3050682900010002BFDD");
+
+        // AA1A02CD010E4E444A5F4443575F56312E302E3050682900 0100 02 BF DD
+
+        System.out.println("cmd:" + ByteUtils.byteArrayToHexString(subData(test, 3, 4)));
+        System.out.println("subCmd:" + ByteUtils.byteArrayToHexString(subData(test, 4, 5)));
+        byte[] nameLength = subData(test, 5, 6);
+        System.out.println("nameLength:" + ByteUtils.byteArrayToHexString(nameLength));
+        int nameLengthInt = Integer.parseInt(ByteUtils.byteArrayToHexString(nameLength), 16);
+        byte[] fileNameData = subData(test, 6, 6 + nameLengthInt);
+        System.out.println("fileName:" + ByteUtils.byteArrayToHexString(fileNameData));
+        String s = new String(fileNameData, StandardCharsets.UTF_8);
+        System.out.println(s);
+        System.out.println("fileSize:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt, 6 + nameLengthInt + 2)));
+        System.out.println("packSum:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2, 6 + nameLengthInt + 2 + 2)));
+        System.out.println("packNum:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2)));
+        System.out.println("fileResult:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2 + 1)));
+        System.out.println("check:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2 + 2 + 1, 6 + nameLengthInt + 2 + 2 + 2 + 1)));
+
 
     }
 

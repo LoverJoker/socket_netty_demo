@@ -115,6 +115,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     break;
                 case CommandType.DOWN:
                     log.info("当前是下载命令");
+                    // 解析
+
                     break;
             }
         }
@@ -174,8 +176,9 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
     @Override
     public void sessionClosed(IoSession session) throws Exception {   //用户从服务器断开
-        log.info("[服务断开]" + session.getId());
+
         String deviceCode = (String) session.getAttribute(DEVICE_CODE_FILED_NAME);
+        log.info("[服务断开]" + deviceCode);
         clientMap.remove(deviceCode);
     }
 

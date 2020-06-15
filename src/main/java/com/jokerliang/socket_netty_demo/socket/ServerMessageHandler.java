@@ -30,6 +30,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
 
     private static final ConcurrentHashMap<String, IoSession> clientMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, byte[]> clientMessageCacheMap = new ConcurrentHashMap<>();
 
 
     public static final String DEVICE_CODE_FILED_NAME = "deviceCode";
@@ -50,10 +51,9 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
     }
 
-    @Override
-    public void messageReceived(IoSession session, Object message) throws Exception {
-        SocketAddress remoteAddress = session.getRemoteAddress();
 
+    @Override
+    public void messageReceived(IoSession session, Object message) {
         IoBuffer inBuf = (IoBuffer) message;
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());
@@ -61,12 +61,17 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
         byte type = CommandType.getType(inbytes);
 
+        if (session.getAttribute(DEVICE_CODE_FILED_NAME) != null) {
+            String deviceCode = (String) session.getAttribute(DEVICE_CODE_FILED_NAME);
+            log.info("当前通过 session取得的设备号:" + deviceCode);
+        }
         switch (type) {
             case CommandType.QUERY:
-                String deviceCode = Query.getDeviceCodeFormCommand(inbytes);
-                session.setAttribute(deviceCode, DEVICE_CODE_FILED_NAME);
-                clientMap.remove(deviceCode);
-                clientMap.put(deviceCode, session);
+                String deviceCodeFromMachine = Query.getDeviceCodeFormCommand(inbytes);
+                session.setAttribute(deviceCodeFromMachine, DEVICE_CODE_FILED_NAME);
+                clientMap.remove(deviceCodeFromMachine);
+                clientMap.put(deviceCodeFromMachine, session);
+                log.info("当前是查询命令，设备号是:" + deviceCodeFromMachine);
                 break;
             case CommandType.DOWN:
                 log.info("当前是下载命令");

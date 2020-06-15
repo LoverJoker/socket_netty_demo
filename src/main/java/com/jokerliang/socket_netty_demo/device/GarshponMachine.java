@@ -179,7 +179,9 @@ public class GarshponMachine {
 
     public static void main(String[] args) throws IOException {
        //GarshponMachine.Update.down();
-        byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
+        //byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
 //         GarshponMachine.Query.getDeviceCodeFormCommand("AA 11 02 01 D90F 48FF6D068065575226480867 F9DD");
+
+
     }
 }

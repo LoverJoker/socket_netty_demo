@@ -3,6 +3,7 @@ package com.jokerliang.socket_netty_demo.socket;
 import com.jokerliang.socket_netty_demo.ReceiveLog;
 import com.jokerliang.socket_netty_demo.device.ByteUtils;
 import com.jokerliang.socket_netty_demo.device.DeviceDeal;
+import com.jokerliang.socket_netty_demo.device.GarshponMachine;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
@@ -19,15 +20,14 @@ import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.jokerliang.socket_netty_demo.device.DeviceDeal.Type;
-import static com.jokerliang.socket_netty_demo.device.DeviceDeal.Command;
-import static com.jokerliang.socket_netty_demo.device.DeviceDeal.Analysis;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Query;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.CommandType;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Update;
 
 @Slf4j
 @Component
 public class ServerMessageHandler extends IoHandlerAdapter {
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
 
     private static final ConcurrentHashMap<String, IoSession> clientMap = new ConcurrentHashMap<>();
 
@@ -46,41 +46,52 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
         log.info("[服务建立]" + session.getId());
         // 服务建立后发送设备号的指令
-        sendMessage(session, DeviceDeal.Command.query());
+        sendMessage(session, Query.query());
 
     }
 
     @Override
     public void messageReceived(IoSession session, Object message) throws Exception {
         SocketAddress remoteAddress = session.getRemoteAddress();
-        log.info("remoteAddress" + remoteAddress.toString());
+
         IoBuffer inBuf = (IoBuffer) message;
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());
-//        String resultText = new String(inbytes, StandardCharsets.UTF_8);
-        String command = ByteUtils.byteArrayToHexString(inbytes);
+        String commandStr = ByteUtils.byteArrayToHexString(inbytes);
 
-        String type = DeviceDeal.Analysis.getType(command);
+        byte type = CommandType.getType(inbytes);
 
         switch (type) {
-            case Type.QUERY_DEVICE:
-                String deviceCode = Analysis.getDeviceCode(command);
+            case CommandType.QUERY:
+                String deviceCode = Query.getDeviceCodeFormCommand(inbytes);
                 session.setAttribute(deviceCode, DEVICE_CODE_FILED_NAME);
                 clientMap.remove(deviceCode);
                 clientMap.put(deviceCode, session);
                 break;
-            case Type.DEVICE_UPDATE_STATUS:
+            case CommandType.DOWN:
+                log.info("当前是下载命令");
                 break;
         }
 
 
 
 
-        log.info("接收到消息: " + command);
+        log.info("接收到消息: " + commandStr);
 
     }
 
     public static Boolean sendMessage(String deviceCode, String message) {
+        if (!clientMap.containsKey(deviceCode)) {
+            log.info("设备：" + deviceCode + "未在此服务器上连接");
+            return false;
+        }
+        IoSession session = clientMap.get(deviceCode);
+        // 发送到客户端
+        sendMessage(session, message);
+        return true;
+    }
+
+    public static Boolean sendMessage(String deviceCode, byte[] message) {
         if (!clientMap.containsKey(deviceCode)) {
             log.info("设备：" + deviceCode + "未在此服务器上连接");
             return false;
@@ -100,6 +111,15 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 //        responseIoBuffer.put(responseByteArray);
 //        responseIoBuffer.flip();
         session.write(IoBuffer.wrap(responseByteArray));
+    }
+
+    private static void sendMessage(IoSession session, byte[] data) {
+        log.info("发送消息:" + ByteUtils.byteArrayToHexString(data));
+        // byte[] responseByteArray = message.getBytes(StandardCharsets.UTF_8);
+//        IoBuffer responseIoBuffer = IoBuffer.allocate(responseByteArray.length);
+//        responseIoBuffer.put(responseByteArray);
+//        responseIoBuffer.flip();
+        session.write(IoBuffer.wrap(data));
     }
 
 

@@ -2,6 +2,7 @@ package com.jokerliang.socket_netty_demo;
 
 
 import com.jokerliang.socket_netty_demo.device.DeviceDeal;
+import com.jokerliang.socket_netty_demo.device.GarshponMachine;
 import com.jokerliang.socket_netty_demo.socket.ServerMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,27 +57,19 @@ public class TestController {
      * @return
      */
     @GetMapping("/test")
-    public String test (String cmd) {
-        ReceiveLog receiveLog = new ReceiveLog();
-        Date date = new Date();
-        receiveLog.setDate(date);
-        receiveLog.setMsg("测试11");
-        mongoTemplate.insert(receiveLog);
-        ServerMessageHandler.sendMessage(ServerMessageHandler.DEVICE_CODE_FILED_NAME, cmd);
+    public String test (String cmd, String deviceCode) {
+        ServerMessageHandler.sendMessage(deviceCode, cmd);
         return "success";
     }
 
-
-    @GetMapping("/all")
-    @ResponseBody
-    public List<ReceiveLog> findAll() {
-        List<ReceiveLog> all = mongoTemplate.findAll(ReceiveLog.class);
-        return all;
+    @GetMapping("/update")
+    public String update(String deviceCode) throws IOException {
+        ArrayList<byte[]> down = GarshponMachine.Update.down();
+        ServerMessageHandler.sendMessage(deviceCode, down.get(0));
+        return null;
     }
 
-    public static void main(String[] args) {
-        String a = "48FF6D068065575226480867";
 
-    }
+
 
 }

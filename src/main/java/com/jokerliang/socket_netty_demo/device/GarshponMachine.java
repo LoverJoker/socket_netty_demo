@@ -96,7 +96,9 @@ public class GarshponMachine {
         /**
          * 数据包下载
          */
-        public static void down() throws IOException {
+        public static ArrayList<byte[]> down() throws IOException {
+            ArrayList<byte[]> returnByte = new ArrayList<>();
+
             String downFileName = "NDJ_DCW_V1.0.0.bin";
             File sourceFile = new File("src/main/resources/" + downFileName);
             String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
@@ -122,16 +124,62 @@ public class GarshponMachine {
                 if (i == 0 ) {
                     System.out.println(ByteUtils.byteArrayToHexString(command));
                 }
-
+                returnByte.add(command);
             }
+            return returnByte;
         }
+    }
+
+    public static class Query {
+
+        public static byte[] query() {
+            byte cmd = 0x01;
+            byte length = 0x03;
+            byte[] bccCheck = getBCCCheck(length, index, cmd);
+            byte[] command = getCommand(head, length, index, cmd, bccCheck, end);
+            String s = ByteUtils.byteArrayToHexString(command);
+            System.out.println(s);
+            return command;
+        }
+
+        public static String getDeviceCodeFormCommand(byte[] command) {
+            ArrayList<Byte> bbb = new ArrayList<>();
+
+            for (int i = 0; i < command.length; i++) {
+                if (i > 6-1 && i <= 18-1) {
+                    bbb.add(command[i]);
+                }
+            }
+
+            byte[] bytes1 = ArrayListToByteArray(bbb);
+            return ByteUtils.byteArrayToHexString(bytes1);
+        }
+
+//        public static void getDeviceCodeFormCommand(byte[] command) {
+//            ArrayList<Byte> bbb = new ArrayList<>();
+//
+//            for (int i = 0; i < command.length; i++) {
+//                if (i > 6-1 && i <= 18-1) {
+//                    bbb.add(command[i]);
+//                }
+//            }
+//
+//            byte[] bytes1 = ArrayListToByteArray(bbb);
+//        }
     }
 
     public static class CommandType {
         public final static byte DOWN = (byte) 0XCD;
+        public final static byte QUERY = (byte) 0X01;
+
+        public static byte getType(byte[] command) {
+            return command[3];
+        }
     }
 
     public static void main(String[] args) throws IOException {
-        GarshponMachine.Update.down();
+       //GarshponMachine.Update.down();
+        byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
+//         GarshponMachine.Query.getDeviceCodeFormCommand("AA 11 02 01 D90F 48FF6D068065575226480867 F9DD");
     }
 }

@@ -47,7 +47,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
         log.info("[服务建立]" + session.getId());
         // 服务建立后发送设备号的指令
-        sendMessage(session, Query.query());
+        clientMap.put("D0DD", session);
+//        sendMessage(session, Query.query());
 
     }
 

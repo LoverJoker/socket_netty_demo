@@ -151,12 +151,12 @@ public class GarshponMachine {
             byte length = (byte) 0XFF;
 
             for (int i = 0; i < fileBytes.size(); i++) {
-//                byte[] fileData = new byte[1];
-//                fileData[0] = 0x01;
-                byte[] fileData = fileData = fileBytes.get(i);
+                byte[] fileData = new byte[1];
+                fileData[0] = 0x01;
+//                byte[] fileData  = fileBytes.get(i);
                 byte[] packetNum = getWord((i + 1));
                 byte[] dataLength = getWord(fileData.length);
-                byte[] frameLength = getWord((2 + 1 + 1 + fileName.length + 2 + 2 + 2 + 2 + fileData.length + 1));
+                byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);
                 byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileSize, packetSum, packetNum, dataLength, fileData);
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
@@ -238,20 +238,20 @@ public class GarshponMachine {
 
 
     public static void main(String[] args) throws IOException {
-       //GarshponMachine.Update.down();
+       GarshponMachine.Update.down();
         //byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
 //         GarshponMachine.Query.getDeviceCodeFormCommand("AA 11 02 01 D90F 48FF6D068065575226480867 F9DD");
-        byte[] test = ByteUtils.hexStr2Byte("AA110201D90F48FF6D0680655752");
-        // 26480867F9DD
-
-        // 先判断这个命令是不是以DD结尾
-
-
-        // 判断是否是 AA 开头， DD结尾
-
-        test(test);
-        test(ByteUtils.hexStr2Byte("26480867"));
-        test(ByteUtils.hexStr2Byte("F9DD"));
+//        byte[] test = ByteUtils.hexStr2Byte("AA110201D90F48FF6D0680655752");
+//        // 26480867F9DD
+//
+//        // 先判断这个命令是不是以DD结尾
+//
+//
+//        // 判断是否是 AA 开头， DD结尾
+//
+//        test(test);
+//        test(ByteUtils.hexStr2Byte("26480867"));
+//        test(ByteUtils.hexStr2Byte("F9DD"));
 
     }
 

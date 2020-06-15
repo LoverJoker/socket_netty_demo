@@ -1,5 +1,6 @@
 package com.jokerliang.socket_netty_demo.device;
 
+import io.lettuce.core.protocol.CommandType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -247,6 +248,48 @@ public class GarshponMachine {
             return returnByte;
         }
 
+        /**
+         * 获取第N帧数据
+         * @param frameIndex 从1 开始！！
+         * @return
+         */
+        public static byte[] getDownFrame(int frameIndex) throws IOException {
+            String downFileName = "NDJ_DCW_V1.0.0.bin";
+            File sourceFile = new File("src/main/resources/" + downFileName);
+            String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
+            LinkedList<byte[]> fileBytes = FileSplitUtils.split(sourceFile, 512);
+            byte cmd = CommandType.DOWN;
+            byte subCommand = 0X01;
+            byte nameLength = (byte) fileNameStr.length();
+            byte[] fileName = fileNameStr.getBytes();
+            byte[] fileSize = getWord(sourceFile.length());
+            byte[] packetSum = getWord((sourceFile.length() % 512 == 0 ? sourceFile.length() / 512 : sourceFile.length() / 512 + 1));
+            byte length = (byte) 0XFF;
+            byte[] fileData = new byte[1];
+            fileData[0] = 0x01;
+//            byte[] fileData  = fileBytes.get(frameIndex - 1);
+            byte[] packetNum = getWord((frameIndex - 1 + 1));
+            byte[] dataLength = getWord(fileData.length);
+            byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);
+            byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileName, fileSize, packetSum, packetNum, dataLength, fileData);
+            byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
+                    fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
+
+            log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
+            log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
+            log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
+            log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
+            log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
+            log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
+            log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
+            log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
+            log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
+            log.info("完整的command: " + ByteUtils.byteArrayToHexString(command));
+
+
+            return command;
+        }
+
         public static String getFileResult(byte[] command) {
             byte[] nameLength = subData(command, 5, 6);
             int nameLengthInt = Integer.parseInt(ByteUtils.byteArrayToHexString(nameLength), 16);
@@ -261,6 +304,8 @@ public class GarshponMachine {
             ArrayUtils.reverse(bytes);
             return Integer.parseInt(ByteUtils.byteArrayToHexString(bytes));
         }
+
+
     }
 
     public static class Query {
@@ -292,36 +337,8 @@ public class GarshponMachine {
     }
 
     public static void main(String[] args) throws IOException {
-        int i = Integer.parseInt("0E", 16);
-        System.out.println(i);
-//       GarshponMachine.Update.down();
-        //byte type = CommandType.getType(ByteUtils.hexStr2Byte("".trim()));
-        String deviceCode = Query.getDeviceCodeFormCommand(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD"));
-
-        // 48FF6D068065575226480867
-        System.out.println("AA 1A 02 CD 01 0E 4E444A5F4443575F56312E302E30 5068 2900 0100 02 BF DD");
-
-        // AA1A02CD010E4E444A5F4443575F56312E302E3050682900010002BFDD
-        byte[] test = ByteUtils.hexStr2Byte("AA1A02CD010E4E444A5F4443575F56312E302E3050682900010002BFDD");
-
-        // AA1A02CD010E4E444A5F4443575F56312E302E3050682900 0100 02 BF DD
-
-        System.out.println("cmd:" + ByteUtils.byteArrayToHexString(subData(test, 3, 4)));
-        System.out.println("subCmd:" + ByteUtils.byteArrayToHexString(subData(test, 4, 5)));
-        byte[] nameLength = subData(test, 5, 6);
-        System.out.println("nameLength:" + ByteUtils.byteArrayToHexString(nameLength));
-        int nameLengthInt = Integer.parseInt(ByteUtils.byteArrayToHexString(nameLength), 16);
-        byte[] fileNameData = subData(test, 6, 6 + nameLengthInt);
-        System.out.println("fileName:" + ByteUtils.byteArrayToHexString(fileNameData));
-        String s = new String(fileNameData, StandardCharsets.UTF_8);
-        System.out.println(s);
-        System.out.println("fileSize:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt, 6 + nameLengthInt + 2)));
-        System.out.println("packSum:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2, 6 + nameLengthInt + 2 + 2)));
-        System.out.println("packNum:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2)));
-        System.out.println("fileResult:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2 + 1)));
-        System.out.println("check:" + ByteUtils.byteArrayToHexString(subData(test, 6 + nameLengthInt + 2 + 2 + 2 + 1, 6 + nameLengthInt + 2 + 2 + 2 + 1)));
-
-
+        byte[] downFrame = Update.getDownFrame(1);
+        System.out.println(ByteUtils.byteArrayToHexString(downFrame));
     }
 
 

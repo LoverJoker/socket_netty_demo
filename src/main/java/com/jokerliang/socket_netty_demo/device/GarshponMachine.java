@@ -230,44 +230,59 @@ public class GarshponMachine {
     }
 
 
-    public static void main(String[] args) throws IOException {
-        Update.down();
+//    public static void main(String[] args) throws IOException {
+//        Update.down();
+//
+//        //AA FF 01 CD 1C00 01 0E 4E444A5F4443575F56312E302E3050682900010001000130DD
+//    }
 
-        //AA FF 01 CD 1C00 01 0E 4E444A5F4443575F56312E302E3050682900010001000130DD
+
+    public static void main(String[] args) throws IOException {
+       //GarshponMachine.Update.down();
+        //byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
+//         GarshponMachine.Query.getDeviceCodeFormCommand("AA 11 02 01 D90F 48FF6D068065575226480867 F9DD");
+        byte[] test = ByteUtils.hexStr2Byte("AA110201D90F48FF6D0680655752");
+        // 26480867F9DD
+
+        // 先判断这个命令是不是以DD结尾
+
+
+        // 判断是否是 AA 开头， DD结尾
+
+        test(test);
+        test(ByteUtils.hexStr2Byte("26480867"));
+        test(ByteUtils.hexStr2Byte("F9DD"));
+
     }
 
-//    private static HashMap<String, byte[]> clientMessage = new HashMap<>();
-//    public static void main(String[] args) throws IOException {
-//       //GarshponMachine.Update.down();
-//        //byte type = CommandType.getType(ByteUtils.hexStr2Byte("AA110201D90F48FF6D068065575226480867F9DD".trim()));
-////         GarshponMachine.Query.getDeviceCodeFormCommand("AA 11 02 01 D90F 48FF6D068065575226480867 F9DD");
-//        byte[] test = ByteUtils.hexStr2Byte("AA110201D90F48FF6D0680655752");
-//        // 26480867F9DD
-//
-//        // 先判断这个命令是不是以DD结尾
-//        String s = ByteUtils.byteArrayToHexString(test);
-//
-//        // 判断是否是 AA 开头， DD结尾
-//
-//        if (s.startsWith("AA") && s.endsWith("DD")) {
-//            // 表示这个是个完整命令
-//            System.out.println(test);
-//        } else if (s.startsWith("AA")) {
-//            // 表示这只是个开头
-//            // 存到cache里面, 如果是AA开头直接存就好
-//            clientMessage.put("deviceCode", test);
-//        } else if (s.endsWith("DD")) {
-//            // 表示 这是个结尾
-//            byte[] cache = clientMessage.get("deviceCode");
-//            // 拼起来，并且清空cache
-//            clientMessage.remove("deviceCode");
-//
-//            byte[] bytes = ArrayUtils.addAll(cache, test);
-//            System.out.println(bytes);
-//        } else {
-//            // 如果既不是开头也不是结尾，那么直接拼起来
-//
-//        }
-//
-//    }
+
+    private static HashMap<String, byte[]> clientMessage = new HashMap<>();
+
+
+    public static void test(byte[] command) {
+        String s = ByteUtils.byteArrayToHexString(command);
+        if (s.startsWith("AA") && s.endsWith("DD")) {
+            // 表示这个是个完整命令
+            System.out.println(ByteUtils.byteArrayToHexString(command));
+        } else if (s.startsWith("AA")) {
+            // 表示这只是个开头
+            // 存到cache里面, 如果是AA开头直接存就好
+            clientMessage.put("deviceCode", command);
+        } else if (s.endsWith("DD")) {
+            // 表示 这是个结尾
+            byte[] cache = clientMessage.get("deviceCode");
+            // 拼起来，并且清空cache
+            clientMessage.remove("deviceCode");
+
+            byte[] bytes = ArrayUtils.addAll(cache, command);
+            System.out.println(ByteUtils.byteArrayToHexString(bytes));
+        } else {
+            // 如果既不是开头也不是结尾，那么直接拼起来
+            byte[] cache = clientMessage.get("deviceCode");
+            byte[] bytes = ArrayUtils.addAll(cache, command);
+            clientMessage.remove("deviceCode");
+            clientMessage.put("deviceCode", bytes);
+
+        }
+    }
 }

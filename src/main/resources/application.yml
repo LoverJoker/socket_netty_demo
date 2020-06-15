@@ -16,6 +16,3 @@ spring:
     database: 0
     host: 120.27.232.182
     port: 6379
-  data:
-    mongodb:
-      uri: mongodb://120.27.232.182:27017/oshop

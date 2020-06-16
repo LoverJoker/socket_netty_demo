@@ -142,7 +142,7 @@ public class GarshponMachine {
 
     /**
      * 这个传进来的是10进制
-     * @param data
+     * @param data 10进制
      * @return
      */
     public static byte[] getWord(int data) {
@@ -276,15 +276,15 @@ public class GarshponMachine {
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
 
-//                log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
-//                log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
-//                log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
-//                log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
-//                log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
-//                log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
-//                log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
-//                log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
-//                log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
+                log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
+                log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
+                log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
+                log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
+                log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
+                log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
+                log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
+                log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
+                log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
                 log.info("下载完整的command: " + ByteUtils.byteArrayToHexString(command));
 
 
@@ -343,44 +343,11 @@ public class GarshponMachine {
     }
 
     public static void main(String[] args) throws IOException {
-        byte[] command = ByteUtils.hexStr2Byte("AA1A02CD010E4E444A5F4443575F56312E302E30506829000A0001B7DD");
-        byte type = CommandType.getType(command);
-        System.out.println(ByteUtils.byteToHex(type));
-
-        int packetNum = Update.getPacketNum(command);
-        String fileResult = Update.getFileResult(command);
-        fileResult = fileResult.trim();
-        log.info("当前是下载命令,result = " + fileResult + "/packetNum=" + packetNum);
+        byte[] downFrame = Update.getDownFrame(1);
+        System.out.println(ByteUtils.byteArrayToHexString(downFrame));
     }
 
 
-    private static HashMap<String, byte[]> clientMessage = new HashMap<>();
 
 
-    public static void test(byte[] command) {
-        String s = ByteUtils.byteArrayToHexString(command);
-        if (s.startsWith("AA") && s.endsWith("DD")) {
-            // 表示这个是个完整命令
-            System.out.println(ByteUtils.byteArrayToHexString(command));
-        } else if (s.startsWith("AA")) {
-            // 表示这只是个开头
-            // 存到cache里面, 如果是AA开头直接存就好
-            clientMessage.put("deviceCode", command);
-        } else if (s.endsWith("DD")) {
-            // 表示 这是个结尾
-            byte[] cache = clientMessage.get("deviceCode");
-            // 拼起来，并且清空cache
-            clientMessage.remove("deviceCode");
-
-            byte[] bytes = ArrayUtils.addAll(cache, command);
-            System.out.println(ByteUtils.byteArrayToHexString(bytes));
-        } else {
-            // 如果既不是开头也不是结尾，那么直接拼起来
-            byte[] cache = clientMessage.get("deviceCode");
-            byte[] bytes = ArrayUtils.addAll(cache, command);
-            clientMessage.remove("deviceCode");
-            clientMessage.put("deviceCode", bytes);
-
-        }
-    }
 }

@@ -133,6 +133,7 @@ public class GarshponMachine {
             bytes[1] = 0X00;
             return bytes;
         } else {
+            ArrayUtils.reverse(byteData);
             return byteData;
         }
     }
@@ -263,12 +264,13 @@ public class GarshponMachine {
                 byte[] fileSize = getWord(sourceFile.length());
                 byte[] packetSum = getWord((sourceFile.length() % 512 == 0 ? sourceFile.length() / 512 : sourceFile.length() / 512 + 1));
                 byte length = (byte) 0XFF;
-                byte[] fileData = new byte[1];
-                fileData[0] = 0x01;
-//                byte[] fileData  = fileBytes.get(frameIndex - 1);
+//                byte[] fileData = new byte[1];
+//                fileData[0] = 0x01;
+                byte[] fileData  = fileBytes.get(frameIndex - 1);
                 byte[] packetNum = getWord((frameIndex - 1 + 1));
                 byte[] dataLength = getWord(fileData.length);
-                byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);
+                int flength = 1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length;
+                byte[] frameLength = getWord(flength);
                 byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileName, fileSize, packetSum, packetNum, dataLength, fileData);
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
@@ -283,7 +285,7 @@ public class GarshponMachine {
 //                log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
 //                log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
 //                log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
-//                log.info("下载完整的command: " + ByteUtils.byteArrayToHexString(command));
+                log.info("下载完整的command: " + ByteUtils.byteArrayToHexString(command));
 
 
                 return command;
@@ -339,6 +341,7 @@ public class GarshponMachine {
         public final static byte SUB_STATUS = 0X01;
         public final static byte SUB_APPLY_PAY = 0X03;
         public final static byte SUB_APPLY_POINT = 0X04;
+        public final static byte SUB_REPLAY_POINT_RESULT = 0X05;
         public static byte getType(byte[] command) {
             return command[3];
         }
@@ -390,7 +393,7 @@ public class GarshponMachine {
 
 
         /**
-         * 云上坟
+         * 云上分
          * @param deviceId 子设备Id
          * @param space 仓位号
          * @param orderCode 订单号
@@ -405,11 +408,27 @@ public class GarshponMachine {
             log.info("云上分" + ByteUtils.byteArrayToHexString(command));
             return command;
         }
+
+        /**
+         * 云上分结果回波
+         * @param deviceId 子设备Id
+         * @param space 仓位号
+         * @param orderCode 订单号
+         * @return
+         */
+        public byte[] replayPointResult(byte deviceId, byte space, byte[] orderCode) {
+            byte length = 0X0C;
+            byte subCmd = CommandType.SUB_REPLAY_POINT_RESULT;
+            byte[] bccCheck = getBCCCheck(length, index, cmd, deviceId, subCmd, space, orderCode);
+            byte[] command = getCommand(head, length, index, cmd, deviceId, subCmd, space, orderCode, bccCheck, end);
+            log.info("云上分结果反馈命令:" + ByteUtils.byteArrayToHexString(command));
+            return command;
+        }
     }
 
     public static void main(String[] args) throws IOException {
         byte[] downFrame = Update.getDownFrame(1);
-        System.out.println(ByteUtils.byteArrayToHexString(downFrame));
+       // System.out.println(ByteUtils.byteArrayToHexString(downFrame));
 
     }
 

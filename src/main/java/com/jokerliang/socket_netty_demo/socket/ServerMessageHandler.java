@@ -2,7 +2,7 @@ package com.jokerliang.socket_netty_demo.socket;
 
 import com.jokerliang.socket_netty_demo.ReceiveLog;
 import com.jokerliang.socket_netty_demo.device.ByteUtils;
-import com.jokerliang.socket_netty_demo.device.DeviceDeal;
+
 import com.jokerliang.socket_netty_demo.device.GarshponMachine;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.jokerliang.socket_netty_demo.device.DeviceDeal.Type;
+
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Query;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.CommandType;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Update;
@@ -123,11 +123,11 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     fileResult = fileResult.trim();
                     log.info("当前是下载命令,result = " + fileResult + "/packetNum=" + packetNum);
                     if (fileResult.equals("01")) {
-                        // byte[] downFrame = Update.getDownFrame(packetNum + 1);
-                        // sendMessage(session, downFrame);
+                         byte[] downFrame = Update.getDownFrame(packetNum + 1);
+                         sendMessage(session, downFrame);
                     } else if (fileResult.equals("02")) {
-                        //byte[] downFrame = Update.getDownFrame(packetNum);
-                        //sendMessage(session, downFrame);
+                        byte[] downFrame = Update.getDownFrame(packetNum);
+                        sendMessage(session, downFrame);
                     }
                     break;
             }

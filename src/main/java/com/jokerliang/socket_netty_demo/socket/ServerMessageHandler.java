@@ -116,6 +116,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     // 解析
                     int packetNum = Update.getPacketNum(command);
                     String fileResult = Update.getFileResult(command);
+                    fileResult = fileResult.trim();
                     log.info("当前是下载命令,result = " + fileResult + "/packetNum=" + packetNum);
                     if (fileResult.equals("1")) {
                         byte[] downFrame = Update.getDownFrame(packetNum + 1);
@@ -163,7 +164,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
     private static void sendMessage(IoSession session, String message) {
         log.info("发送消息:" + message);
         message = message.trim();
-         byte[] responseByteArray = ByteUtils.hexStr2Byte(message);
+        byte[] responseByteArray = ByteUtils.hexStr2Byte(message);
         // byte[] responseByteArray = message.getBytes(StandardCharsets.UTF_8);
 //        IoBuffer responseIoBuffer = IoBuffer.allocate(responseByteArray.length);
 //        responseIoBuffer.put(responseByteArray);
@@ -199,7 +200,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
     @Override
     public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
         super.exceptionCaught(session, cause);
-        log.error("服务异常" + session.getId());
+        log.error("服务异常" + session.getId() + "//deviceCode" + session.getAttribute(DEVICE_CODE_FILED_NAME));
         cause.printStackTrace();
     }
 

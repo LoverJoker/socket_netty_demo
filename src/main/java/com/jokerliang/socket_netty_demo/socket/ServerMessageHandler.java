@@ -118,10 +118,10 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     String fileResult = Update.getFileResult(command);
                     fileResult = fileResult.trim();
                     log.info("当前是下载命令,result = " + fileResult + "/packetNum=" + packetNum);
-                    if (fileResult.equals("1")) {
+                    if (fileResult.equals("01")) {
                         byte[] downFrame = Update.getDownFrame(packetNum + 1);
                         sendMessage(session, downFrame);
-                    } else if (fileResult.equals("2")) {
+                    } else if (fileResult.equals("02")) {
                         byte[] downFrame = Update.getDownFrame(packetNum);
                         sendMessage(session, downFrame);
                     }

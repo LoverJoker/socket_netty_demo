@@ -255,7 +255,7 @@ public class GarshponMachine {
          */
         public static byte[] getDownFrame(int frameIndex) {
             try {
-                String downFileName = "NDJ_DCW_V1.0.0.bin";
+                String downFileName = "NDJ_DCW_V1.0.1.bin";
                 File sourceFile = new File("src/main/resources/" + downFileName);
                 String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
                 LinkedList<byte[]> fileBytes = FileSplitUtils.split(sourceFile, 512);
@@ -336,9 +336,21 @@ public class GarshponMachine {
     public static class CommandType {
         public final static byte DOWN = (byte) 0XCD;
         public final static byte QUERY = (byte) 0X01;
+        public final static byte STATUS = (byte) 0XCC;
 
         public static byte getType(byte[] command) {
             return command[3];
+        }
+    }
+
+    /**
+     *
+     */
+    public static class Status{
+        byte cmd = CommandType.STATUS;
+
+        public void backStatusToDevice(Byte deviceId, Byte allSpace) {
+            byte subCmd = 0x01;
         }
     }
 

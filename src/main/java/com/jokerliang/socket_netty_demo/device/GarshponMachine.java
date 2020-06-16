@@ -253,7 +253,7 @@ public class GarshponMachine {
          */
         public static byte[] getDownFrame(int frameIndex) {
             try {
-                String downFileName = "NDJ_DCW_V1.0.3.bin";
+                String downFileName = "NDJ_DCW_V1.0.4.bin";
                 File sourceFile = new File("src/main/resources/" + downFileName);
                 String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
                 LinkedList<byte[]> fileBytes = FileSplitUtils.split(sourceFile, 512);

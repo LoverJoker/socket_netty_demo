@@ -196,7 +196,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
     @Override
     public void messageSent(IoSession session, Object message){ //发送消息结束
-        log.info("[发送消息结束]" + session.getId() + "message" + message);
+        // log.info("[发送消息结束]" + session.getId() + "message" + message);
     }
 
 

@@ -1,14 +1,11 @@
 package com.jokerliang.socket_netty_demo.device;
 
-import io.lettuce.core.protocol.CommandType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
@@ -266,9 +263,9 @@ public class GarshponMachine {
                 byte[] fileSize = getWord(sourceFile.length());
                 byte[] packetSum = getWord((sourceFile.length() % 512 == 0 ? sourceFile.length() / 512 : sourceFile.length() / 512 + 1));
                 byte length = (byte) 0XFF;
-//                byte[] fileData = new byte[1];
-//                fileData[0] = 0x01;
-                byte[] fileData  = fileBytes.get(frameIndex - 1);
+                byte[] fileData = new byte[1];
+                fileData[0] = 0x01;
+//                byte[] fileData  = fileBytes.get(frameIndex - 1);
                 byte[] packetNum = getWord((frameIndex - 1 + 1));
                 byte[] dataLength = getWord(fileData.length);
                 byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);
@@ -276,17 +273,17 @@ public class GarshponMachine {
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
 
-                log.info("length: " + ByteUtils.byteToHex(length));
-                log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
-                log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
-                log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
-                log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
-                log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
-                log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
-                log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
-                log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
-                log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
-                log.info("下载完整的command: " + ByteUtils.byteArrayToHexString(command));
+//                log.info("length: " + ByteUtils.byteToHex(length));
+//                log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
+//                log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
+//                log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
+//                log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
+//                log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
+//                log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
+//                log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
+//                log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
+//                log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
+//                log.info("下载完整的command: " + ByteUtils.byteArrayToHexString(command));
 
 
                 return command;
@@ -337,40 +334,82 @@ public class GarshponMachine {
     public static class CommandType {
         public final static byte DOWN = (byte) 0XCD;
         public final static byte QUERY = (byte) 0X01;
-        public final static byte STATUS = (byte) 0XCC;
+        public final static byte NORMAL = (byte) 0XCC;
 
+        public final static byte SUB_STATUS = 0X01;
+        public final static byte SUB_APPLY_PAY = 0X03;
+        public final static byte SUB_APPLY_POINT = 0X04;
         public static byte getType(byte[] command) {
             return command[3];
         }
     }
 
     /**
-     *
+     * 主办主动上传状态
      */
     public static class Status{
-        byte cmd = CommandType.STATUS;
+        byte cmd = CommandType.NORMAL;
 
 
-        public void backStatusToDevice(Byte deviceId, Byte allSpace) {
-            byte subCmd = 0x01;
+        /**
+         * 扭蛋机主动上传状态的服务器回波
+         * @param deviceId 子设备ID
+         * @param allSpace 总参数
+         * @return
+         */
+        public byte[] backStatusToDevice(Byte deviceId, Byte allSpace) {
+            byte subCmd = CommandType.SUB_STATUS;
             byte length = 0x05;
-            byte[] bccCheck = getBCCCheck(length, index, cmd, deviceId, allSpace);
-            getCommand(head, length, index, cmd, deviceId, allSpace, bccCheck);
+            byte[] bccCheck = getBCCCheck(length, index, cmd, deviceId, subCmd, allSpace);
+            return getCommand(head, length, index, cmd, deviceId, subCmd, allSpace, bccCheck, end);
+        }
+    }
+
+    /**
+     * 支付相关
+     */
+    public static class Pay{
+
+        byte cmd = CommandType.NORMAL;
+
+        /**
+         * 申请支付
+         * @param deviceId 子设备Id
+         * @param space 仓位号
+         * @param orderCode 设备号
+         * @return
+         */
+        public byte[] applyPay(byte deviceId, byte space, byte[] orderCode) {
+            byte subCmd = CommandType.SUB_APPLY_PAY;
+            byte length = 0X0C;
+            byte[] bccCheck = getBCCCheck(length, index, cmd, deviceId, subCmd, space, orderCode);
+            byte[] command = getCommand(head, length, index, cmd, deviceId, subCmd, space, orderCode, bccCheck, end);
+            log.info("申请支付的完整命令" + ByteUtils.byteArrayToHexString(command));
+            return command;
+        }
+
+
+        /**
+         * 云上坟
+         * @param deviceId 子设备Id
+         * @param space 仓位号
+         * @param orderCode 订单号
+         * @param point 上分数量
+         * @return
+         */
+        public byte[] applyPoint(byte deviceId, byte space, byte[] orderCode, byte point) {
+            byte length = 0X0E;
+            byte subCmd = CommandType.SUB_APPLY_POINT;
+            byte[] bccCheck = getBCCCheck(length, index, cmd, deviceId, subCmd, space, orderCode, point);
+            byte[] command = getCommand(head, length, index, cmd, deviceId, subCmd, space, orderCode, point, bccCheck, end);
+            log.info("云上分" + ByteUtils.byteArrayToHexString(command));
+            return command;
         }
     }
 
     public static void main(String[] args) throws IOException {
-//        byte[] downFrame = Update.getDownFrame(1);
-//        System.out.println(ByteUtils.byteArrayToHexString(downFrame));
-
-        String command = "AAFF01CD0218010E4E444A5F4443575F56312E302E305068290001000200F82D0020E551000829640008115E0008256400089D590008D374000800000000000000000000000000000000876B0008C559000800000000B1640008656D0008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008CF740008D1740008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008317100088D710008E9710008FF510008FF510008FF51000800F002F800F069F80AA090E8000C82448344AAF10107DA4501D100F05EF8AFF2090EBAE80F0013F0010F18BFFB1A43F001031847844E0000A44E00000A444FF0000C10F8013B13F0070408BF10F8014B1D1108BF10F8015B641E05D010F8016B641E01F8016BF9D113F0080F1EBF10F8014BAD1C0C1B09D16D1E58BF01F801CBFAD505E014F8016B01F8016B6D1EF9D59142D6D3704700000023002400250026103A28BF78C1FBD8520728BF30C148BF0B607047642900F0CB80782900F00481732900F02483002070471FB59DE8030000F07CFA1FBD10B510BD00F071FB1146FFF7F3FF03F0FEFD00F08FFB03B4FFF7F2FF03BC02F04EFA0948804709480047FEE7FEE7FEE7FEE7FEE7FEE7FEE7FEE7FEE7FEE7AADD\n" +
-                "AAFF01CD0218010E4E444A5F4443575F56312E302E305068290001000200F82D0020E551000829640008115E0008256400089D590008D374000800000000000000000000000000000000876B0008C559000800000000B1640008656D0008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008CF740008D1740008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008FF510008317100088D710008E9710008FF510008FF510008FF51000800F002F800F069F80AA090E8000C82448344AAF10107DA4501D100F05EF8AFF2090EBAE80F0013F0010F18BFFB1A43F001031847844E0000A44E00000A444FF0000C10F8013B13F0070408BF10F8014B1D1108BF10F8015B641E05D010F8016B641E01F8016BF9D113F0080F1EBF10F8014BAD1C0C1B09D16D1E58BF01F801CBFAD505E014F8016B01F8016B6D1EF9D59142D6D3704700000023002400250026103A28BF78C1FBD8520728BF30C148BF0B607047642900F0CB80782900F00481732900F02483002070471FB59DE8030000F07CFA1FBD10B510BD00F071FB1146FFF7F3FF03F0FEFD00F08FFB03B4FFF7F2FF03BC02F04EFA0948804709480047FEE7FEE7FEE7FEE7FEE7FEE7FEE7FEE7FEE7FEE7AADD";
-
-        command = command.trim();
-        int packetNum = Update.getPacketNum(ByteUtils.hexStr2Byte(command));
-        String failResult = Update.getFileResult(ByteUtils.hexStr2Byte(command));
-        System.out.println(packetNum);
-        System.out.println(failResult);
+        byte[] downFrame = Update.getDownFrame(1);
+        System.out.println(ByteUtils.byteArrayToHexString(downFrame));
 
     }
 

@@ -75,7 +75,6 @@ public class ServerMessageHandler extends IoHandlerAdapter {
             clientMessageCacheMap.remove(sessionId);
 
             byte[] bytes = ArrayUtils.addAll(cache, command);
-            System.out.println(ByteUtils.byteArrayToHexString(bytes));
             return bytes;
         } else {
             // 如果既不是开头也不是结尾，那么直接拼起来
@@ -86,6 +85,10 @@ public class ServerMessageHandler extends IoHandlerAdapter {
             return null;
         }
     }
+
+
+
+
 
     @Override
     public void messageReceived(IoSession session, Object message) {
@@ -99,6 +102,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         byte[] command = composeCommand(inbytes, session.getId() + "");
 
         if (command != null) {
+            log.info("拼完后的完整消息" + ByteUtils.byteArrayToHexString(command));
             byte type = CommandType.getType(command);
             if (session.getAttribute(DEVICE_CODE_FILED_NAME) != null) {
                 String deviceCode = (String) session.getAttribute(DEVICE_CODE_FILED_NAME);

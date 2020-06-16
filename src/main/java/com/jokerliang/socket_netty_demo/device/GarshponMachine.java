@@ -255,7 +255,7 @@ public class GarshponMachine {
          */
         public static byte[] getDownFrame(int frameIndex) {
             try {
-                String downFileName = "NDJ_DCW_V1.0.1.bin";
+                String downFileName = "NDJ_DCW_V1.0.2.bin";
                 File sourceFile = new File("src/main/resources/" + downFileName);
                 String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
                 LinkedList<byte[]> fileBytes = FileSplitUtils.split(sourceFile, 512);
@@ -276,6 +276,7 @@ public class GarshponMachine {
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
 
+                log.info("length: " + ByteUtils.byteToHex(length));
                 log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
                 log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
                 log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
@@ -349,8 +350,12 @@ public class GarshponMachine {
     public static class Status{
         byte cmd = CommandType.STATUS;
 
+
         public void backStatusToDevice(Byte deviceId, Byte allSpace) {
             byte subCmd = 0x01;
+            byte length = 0x05;
+            byte[] bccCheck = getBCCCheck(length, index, cmd, deviceId, allSpace);
+            getCommand(head, length, index, cmd, deviceId, allSpace, bccCheck);
         }
     }
 

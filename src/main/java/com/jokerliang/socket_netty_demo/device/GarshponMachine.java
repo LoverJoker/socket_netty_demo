@@ -266,9 +266,9 @@ public class GarshponMachine {
                 byte[] fileSize = getWord(sourceFile.length());
                 byte[] packetSum = getWord((sourceFile.length() % 512 == 0 ? sourceFile.length() / 512 : sourceFile.length() / 512 + 1));
                 byte length = (byte) 0XFF;
-                byte[] fileData = new byte[1];
-                fileData[0] = 0x01;
-//                byte[] fileData  = fileBytes.get(frameIndex - 1);
+//                byte[] fileData = new byte[1];
+//                fileData[0] = 0x01;
+                byte[] fileData  = fileBytes.get(frameIndex - 1);
                 byte[] packetNum = getWord((frameIndex - 1 + 1));
                 byte[] dataLength = getWord(fileData.length);
                 byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);

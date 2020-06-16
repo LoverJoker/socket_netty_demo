@@ -308,7 +308,7 @@ public class GarshponMachine {
             int nameLengthInt = Integer.parseInt(ByteUtils.byteArrayToHexString(nameLength), 16);
             byte[] bytes = subData(command, 6 + nameLengthInt + 2 + 2, 6 + nameLengthInt + 2 + 2 + 2);
             ArrayUtils.reverse(bytes);
-            return Integer.parseInt(ByteUtils.byteArrayToHexString(bytes));
+            return Integer.parseInt(ByteUtils.byteArrayToHexString(bytes), 16);
         }
 
 
@@ -343,8 +343,14 @@ public class GarshponMachine {
     }
 
     public static void main(String[] args) throws IOException {
-        byte[] downFrame = Update.getDownFrame(1);
-        System.out.println(ByteUtils.byteArrayToHexString(downFrame));
+        byte[] command = ByteUtils.hexStr2Byte("AA1A02CD010E4E444A5F4443575F56312E302E30506829000A0001B7DD");
+        byte type = CommandType.getType(command);
+        System.out.println(ByteUtils.byteToHex(type));
+
+        int packetNum = Update.getPacketNum(command);
+        String fileResult = Update.getFileResult(command);
+        fileResult = fileResult.trim();
+        log.info("当前是下载命令,result = " + fileResult + "/packetNum=" + packetNum);
     }
 
 

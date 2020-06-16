@@ -276,16 +276,16 @@ public class GarshponMachine {
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
 
-                log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
-                log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
-                log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
-                log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
-                log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
-                log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
-                log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
-                log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
-                log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
-                log.info("完整的command: " + ByteUtils.byteArrayToHexString(command));
+//                log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
+//                log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
+//                log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
+//                log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
+//                log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
+//                log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
+//                log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
+//                log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
+//                log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
+                log.info("下载完整的command: " + ByteUtils.byteArrayToHexString(command));
 
 
                 return command;

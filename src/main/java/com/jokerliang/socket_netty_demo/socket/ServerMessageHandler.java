@@ -113,11 +113,17 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     log.info("当前是查询命令，设备号是:" + deviceCodeFromMachine);
                     break;
                 case CommandType.DOWN:
-                    log.info("当前是下载命令");
                     // 解析
                     int packetNum = Update.getPacketNum(command);
                     String fileResult = Update.getFileResult(command);
-
+                    log.info("当前是下载命令,result = " + fileResult + "/packetNum=" + packetNum);
+                    if (fileResult.equals("1")) {
+                        byte[] downFrame = Update.getDownFrame(packetNum + 1);
+                        sendMessage(session, downFrame);
+                    } else if (fileResult.equals("2")) {
+                        byte[] downFrame = Update.getDownFrame(packetNum);
+                        sendMessage(session, downFrame);
+                    }
                     break;
             }
         }

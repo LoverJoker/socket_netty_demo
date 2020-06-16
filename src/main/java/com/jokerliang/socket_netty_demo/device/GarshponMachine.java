@@ -200,94 +200,100 @@ public class GarshponMachine {
         /**
          * 数据包下载
          */
-        public static ArrayList<byte[]> down() throws IOException {
-            ArrayList<byte[]> returnByte = new ArrayList<>();
+//        public static ArrayList<byte[]> down() throws IOException {
+//            ArrayList<byte[]> returnByte = new ArrayList<>();
+//
+//            String downFileName = "NDJ_DCW_V1.0.0.bin";
+//            File sourceFile = new File("src/main/resources/" + downFileName);
+//            String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
+//            LinkedList<byte[]> fileBytes = FileSplitUtils.split(sourceFile, 512);
+//
+//            byte cmd = CommandType.DOWN;
+//            byte subCommand = 0X01;
+//            byte nameLength = (byte) fileNameStr.length();
+//            byte[] fileName = fileNameStr.getBytes();
+//            byte[] fileSize = getWord(sourceFile.length());
+//            byte[] packetSum = getWord((sourceFile.length()%512==0?sourceFile.length()/512 :sourceFile.length()/512+1));
+//            byte length = (byte) 0XFF;
+//
+//            for (int i = 0; i < fileBytes.size(); i++) {
+//                byte[] fileData = new byte[1];
+//                fileData[0] = 0x01;
+////                byte[] fileData  = fileBytes.get(i);
+//                byte[] packetNum = getWord((i + 1));
+//                byte[] dataLength = getWord(fileData.length);
+//                byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);
+////                byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileSize, packetSum, packetNum, dataLength, fileData);
+//                byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileName, fileSize, packetSum, packetNum, dataLength, fileData);
+//                byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
+//                        fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
+//
+//                if (i == 0 ) {
+//
+//                    log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
+//                    log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
+//                    log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
+//                    log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
+//                    log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
+//                    log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
+//                    log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
+//                    log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
+//                    log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
+//                    log.info("完整的command: " + ByteUtils.byteArrayToHexString(command));
+//
+//
+//                }
+//                returnByte.add(command);
+//            }
+//            return returnByte;
+//        }
 
-            String downFileName = "NDJ_DCW_V1.0.0.bin";
-            File sourceFile = new File("src/main/resources/" + downFileName);
-            String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
-            LinkedList<byte[]> fileBytes = FileSplitUtils.split(sourceFile, 512);
-
-            byte cmd = CommandType.DOWN;
-            byte subCommand = 0X01;
-            byte nameLength = (byte) fileNameStr.length();
-            byte[] fileName = fileNameStr.getBytes();
-            byte[] fileSize = getWord(sourceFile.length());
-            byte[] packetSum = getWord((sourceFile.length()%512==0?sourceFile.length()/512 :sourceFile.length()/512+1));
-            byte length = (byte) 0XFF;
-
-            for (int i = 0; i < fileBytes.size(); i++) {
+        /**
+         * 数据包下载,获取第N帧数据
+         * @param frameIndex 从1 开始！！
+         * @return
+         */
+        public static byte[] getDownFrame(int frameIndex) {
+            try {
+                String downFileName = "NDJ_DCW_V1.0.0.bin";
+                File sourceFile = new File("src/main/resources/" + downFileName);
+                String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
+                LinkedList<byte[]> fileBytes = FileSplitUtils.split(sourceFile, 512);
+                byte cmd = CommandType.DOWN;
+                byte subCommand = 0X01;
+                byte nameLength = (byte) fileNameStr.length();
+                byte[] fileName = fileNameStr.getBytes();
+                byte[] fileSize = getWord(sourceFile.length());
+                byte[] packetSum = getWord((sourceFile.length() % 512 == 0 ? sourceFile.length() / 512 : sourceFile.length() / 512 + 1));
+                byte length = (byte) 0XFF;
                 byte[] fileData = new byte[1];
                 fileData[0] = 0x01;
-//                byte[] fileData  = fileBytes.get(i);
-                byte[] packetNum = getWord((i + 1));
+//            byte[] fileData  = fileBytes.get(frameIndex - 1);
+                byte[] packetNum = getWord((frameIndex - 1 + 1));
                 byte[] dataLength = getWord(fileData.length);
                 byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);
-//                byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileSize, packetSum, packetNum, dataLength, fileData);
                 byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileName, fileSize, packetSum, packetNum, dataLength, fileData);
                 byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
                         fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
 
-                if (i == 0 ) {
-
-                    log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
-                    log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
-                    log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
-                    log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
-                    log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
-                    log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
-                    log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
-                    log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
-                    log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
-                    log.info("完整的command: " + ByteUtils.byteArrayToHexString(command));
+                log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
+                log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
+                log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
+                log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
+                log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
+                log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
+                log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
+                log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
+                log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
+                log.info("完整的command: " + ByteUtils.byteArrayToHexString(command));
 
 
-                }
-                returnByte.add(command);
+                return command;
+            } catch (Exception e) {
+                log.error("扭蛋机更新失败");
+                e.printStackTrace();
+                return new byte[1];
             }
-            return returnByte;
-        }
-
-        /**
-         * 获取第N帧数据
-         * @param frameIndex 从1 开始！！
-         * @return
-         */
-        public static byte[] getDownFrame(int frameIndex) throws IOException {
-            String downFileName = "NDJ_DCW_V1.0.0.bin";
-            File sourceFile = new File("src/main/resources/" + downFileName);
-            String fileNameStr = downFileName.substring(0, downFileName.lastIndexOf("."));
-            LinkedList<byte[]> fileBytes = FileSplitUtils.split(sourceFile, 512);
-            byte cmd = CommandType.DOWN;
-            byte subCommand = 0X01;
-            byte nameLength = (byte) fileNameStr.length();
-            byte[] fileName = fileNameStr.getBytes();
-            byte[] fileSize = getWord(sourceFile.length());
-            byte[] packetSum = getWord((sourceFile.length() % 512 == 0 ? sourceFile.length() / 512 : sourceFile.length() / 512 + 1));
-            byte length = (byte) 0XFF;
-            byte[] fileData = new byte[1];
-            fileData[0] = 0x01;
-//            byte[] fileData  = fileBytes.get(frameIndex - 1);
-            byte[] packetNum = getWord((frameIndex - 1 + 1));
-            byte[] dataLength = getWord(fileData.length);
-            byte[] frameLength = getWord(1 + 1 + fileName.length + fileSize.length + packetNum.length + packetSum.length + dataLength.length + fileData.length);
-            byte[] bccCheck = getBCCCheck(length, index, cmd, frameLength, subCommand, nameLength, fileName, fileSize, packetSum, packetNum, dataLength, fileData);
-            byte[] command = getCommand(head, length, index, cmd, frameLength, subCommand, nameLength, fileName,
-                    fileSize, packetSum, packetNum, dataLength, fileData, bccCheck, end);
-
-            log.info("nameLength: " + ByteUtils.byteToHex(nameLength));
-            log.info("fileName: " + ByteUtils.byteArrayToHexString(fileName));
-            log.info("fileSize: " + ByteUtils.byteArrayToHexString(fileSize));
-            log.info("packageSum: " + ByteUtils.byteArrayToHexString(packetSum));
-            log.info("packetNum: " + ByteUtils.byteArrayToHexString(packetNum));
-            log.info("dataLength: " + ByteUtils.byteArrayToHexString(dataLength));
-            log.info("frameLength: " + ByteUtils.byteArrayToHexString(frameLength));
-            log.info("fileData: " + ByteUtils.byteArrayToHexString(fileData));
-            log.info("check: " + ByteUtils.byteArrayToHexString(bccCheck));
-            log.info("完整的command: " + ByteUtils.byteArrayToHexString(command));
-
-
-            return command;
         }
 
         public static String getFileResult(byte[] command) {

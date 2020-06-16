@@ -60,9 +60,9 @@ public class TestController {
 
     @GetMapping("/update")
     public String update(String deviceCode) throws IOException {
-        ArrayList<byte[]> down = GarshponMachine.Update.down();
-        ServerMessageHandler.sendMessage(deviceCode, down.get(0));
-        return null;
+        byte[] downFrame = GarshponMachine.Update.getDownFrame(1);
+        ServerMessageHandler.sendMessage(deviceCode, downFrame);
+        return "success";
     }
 
 

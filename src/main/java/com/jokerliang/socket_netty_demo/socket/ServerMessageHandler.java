@@ -196,6 +196,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
              break;
             case CommandType.SUB_REPLAY_POINT_RESULT:
                 // AA0E02CC010501ED723576774A010025DD
+                log.info("当前是云上分上传结果");
                 byte[] orderCode1 = Pay.getOrderCode(command);
                 byte space1 = Pay.getSpace(command);
                 byte[] bytes1 = Pay.replayPointResult(space1, orderCode1);

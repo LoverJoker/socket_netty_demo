@@ -97,6 +97,26 @@ public class GarshponMachine {
         return bys;
     }
 
+    /**
+     * 算长度
+     * @param objects
+     * @return
+     */
+    public static byte getLength(Object... objects) {
+        // 默认需要有一个check的长度
+        int length = 1;
+        for (Object object : objects) {
+            if (object instanceof byte[]) {
+                length += ((byte[]) object).length;
+            } else {
+                length += 1;
+            }
+        }
+
+        String s = Integer.toHexString(length);
+        return ByteUtils.hexStr2Byte(s)[0];
+    }
+
 
     /**
      * 裁切数据
@@ -348,7 +368,7 @@ public class GarshponMachine {
 
         public static byte[] query() {
             byte cmd = 0x01;
-            byte length = 0x03;
+            byte length = getLength(index, cmd);
             byte[] bccCheck = getBCCCheck(length, index, cmd);
             byte[] command = getCommand(head, length, index, cmd, bccCheck, end);
             String s = ByteUtils.byteArrayToHexString(command);
@@ -383,11 +403,16 @@ public class GarshponMachine {
          */
         public static byte[] backStatusToDevice(byte allSpace) {
             byte subCmd = CommandType.SUB_STATUS;
-            byte length = 0x05;
+            byte length = getLength(index, cmd, subDeviceId, subCmd, allSpace);
             byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, allSpace);
             return getCommand(head, length, index, cmd, subDeviceId, subCmd, allSpace, bccCheck, end);
         }
 
+        /**
+         * 获取总仓数
+         * @param command
+         * @return
+         */
         public static byte getAllSpace(byte[] command) {
             return command[20];
         }
@@ -438,7 +463,7 @@ public class GarshponMachine {
          */
         public static byte[] applyPay(byte space, byte[] orderCode) {
             byte subCmd = CommandType.SUB_APPLY_PAY;
-            byte length = 0X0C;
+            byte length = getLength(index, cmd, subDeviceId, subCmd, space, orderCode);
             byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, space, orderCode);
             byte[] command = getCommand(head, length, index, cmd, subDeviceId, subCmd, space, orderCode, bccCheck, end);
             log.info("申请支付的完整命令" + ByteUtils.byteArrayToHexString(command));
@@ -453,26 +478,27 @@ public class GarshponMachine {
          * @param point 上分数量
          * @return
          */
-        public static byte[] applyPoint(byte space, byte[] orderCode, byte[] point) {
-            byte length = 0X0E;
+        public static byte[] applyPoint(byte space, byte[] orderCode, int point) {
+            byte[] pointWord = getWord(point);
             byte subCmd = CommandType.SUB_APPLY_POINT;
-            byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, space, orderCode, point);
-            byte[] command = getCommand(head, length, index, cmd, subDeviceId, subCmd, space, orderCode, point, bccCheck, end);
+            byte length = getLength(index, cmd, subDeviceId, subCmd, space, orderCode, pointWord);
+            byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, space, orderCode, pointWord);
+            byte[] command = getCommand(head, length, index, cmd, subDeviceId, subCmd, space, orderCode, pointWord, bccCheck, end);
             log.info("云上分" + ByteUtils.byteArrayToHexString(command));
             return command;
         }
 
         /**
          * 云上分结果回波
-         * @param space 仓位号
+         * @param allSpace 仓位号
          * @param orderCode 订单号
          * @return
          */
-        public static byte[] replayPointResult(byte space, byte[] orderCode) {
-            byte length = 0X0C;
+        public static byte[] replayPointResult(byte allSpace, byte[] orderCode) {
             byte subCmd = CommandType.SUB_REPLAY_POINT_RESULT;
-            byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, space, orderCode);
-            byte[] command = getCommand(head, length, index, cmd, subDeviceId, subCmd, space, orderCode, bccCheck, end);
+            byte length = getLength(index, cmd, subDeviceId, subCmd, allSpace, orderCode);
+            byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, allSpace, orderCode);
+            byte[] command = getCommand(head, length, index, cmd, subDeviceId, subCmd, allSpace, orderCode, bccCheck, end);
             log.info("云上分结果反馈命令:" + ByteUtils.byteArrayToHexString(command));
             return command;
         }
@@ -506,8 +532,8 @@ public class GarshponMachine {
           * @return
          */
         public static byte[] querySpace(byte allSpace) {
-            byte length = 0X06;
             byte subCommand = CommandType.SUB_QUERY_SPACE;
+            byte length = getLength(index, cmd, subDeviceId, subCommand, allSpace);
             byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCommand, allSpace);
             return getCommand(head, length, index, cmd, subDeviceId, subCommand, allSpace, bccCheck, end);
         }
@@ -520,9 +546,8 @@ public class GarshponMachine {
         // AA 0C 01 CC 01 03 01 4C5C2BCF0C6C 56 DD
         byte[] bytes = Pay.applyPay((byte) 0x01, Pay.getOrderCode());
 
-        String orderCodeStr = Pay.getOrderCodeStr();
-
-        System.out.println(orderCodeStr);
+        byte[] query = Query.query();
+        System.out.println(ByteUtils.byteArrayToHexString(query));
 
     }
 

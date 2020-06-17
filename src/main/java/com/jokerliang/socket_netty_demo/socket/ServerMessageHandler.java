@@ -167,25 +167,21 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                         + "他的状态:" + ByteUtils.byteToHex(spaceStatus)
                         + "此单订单号" + ByteUtils.byteArrayToHexString(orderCode));
                 if (spaceStatus != Status.STATUS_OK) {
-                    log.debug("当前仓位不允许出货");
+                    log.info("当前仓位不允许出货");
                     return;
                 }
                 // 允许出货发送上分指令
-                Pay.applyPay(space, orderCode);
+                byte[] pointCommand = Pay.applyPoint(space, orderCode, 1);
+                sendMessage(session, pointCommand);
                 break;
 
             case CommandType.SUB_APPLY_POINT:
-                log.debug("当前是云上分命令");
+                log.info("当前是云上分命令");
                 break;
         }
     }
 
-    public static void main(String[] args) {
-        String replace = "AA 0D 02 CC 01 03 01 CB218792D645 03 AFDD".replace(" ", "");
-        byte[] allSpace = Pay.getOrderCode(ByteUtils.hexStr2Byte(replace));
 
-        System.out.println(ByteUtils.byteArrayToHexString(allSpace));
-    }
     public static Boolean sendMessage(String deviceCode, String message) {
         if (!clientMap.containsKey(deviceCode)) {
             log.info("设备：" + deviceCode + "未在此服务器上连接");

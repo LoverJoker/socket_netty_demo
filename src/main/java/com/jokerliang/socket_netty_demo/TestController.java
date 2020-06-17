@@ -66,7 +66,12 @@ public class TestController {
         return "success";
     }
 
+    @GetMapping("/pay")
+    public String pay() {
+        long l = System.nanoTime();
 
+        return "";
+    }
 
 
 }

@@ -58,7 +58,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
      * 通过这个方法可以组合起来
      * @param command
      */
-    public static byte[] composeCommand(byte[] command, String sessionId) {
+    private static byte[] composeCommand(byte[] command, String sessionId) {
         String s = ByteUtils.byteArrayToHexString(command);
         if (s.startsWith("AA") && s.endsWith("DD")) {
             // 表示这个是个完整命令
@@ -85,7 +85,6 @@ public class ServerMessageHandler extends IoHandlerAdapter {
             return null;
         }
     }
-
 
 
 
@@ -130,18 +129,34 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                         sendMessage(session, downFrame);
                     }
                     break;
+                case CommandType.NORMAL:
+                    // 如果主命令是CC,就需要判断子命令
+                    handlerNormalMessage(command);
+                    break;
             }
         }
 
 
-
-
-
-
-
-
-
     }
+
+
+    /**
+     * 处理如果是0XCC 的命令, 需要判断子命令
+     */
+    public void handlerNormalMessage(byte[] command) {
+        byte subType = CommandType.getSubType(command);
+        switch (subType) {
+            // 主板主动上传状态
+            case CommandType.SUB_STATUS:
+                log.info("当前是主板上传状态命令");
+                break;
+            // 申请支付
+            case CommandType.SUB_APPLY_PAY:
+                log.info("当前是申请支付命令");
+                break;
+        }
+    }
+
 
     public static Boolean sendMessage(String deviceCode, String message) {
         if (!clientMap.containsKey(deviceCode)) {

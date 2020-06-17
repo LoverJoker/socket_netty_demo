@@ -494,7 +494,7 @@ public class GarshponMachine {
          * @return
          */
         public static byte[] getPointNumber(byte[] command) {
-            return subData(command, 14, 16);
+            return subData(command, 13, 15);
         }
 
         /**
@@ -553,10 +553,10 @@ public class GarshponMachine {
        // System.out.println(ByteUtils.byteArrayToHexString(downFrame));
 
         // AA 0C 01 CC 01 03 01 4C5C2BCF0C6C 56 DD
-        byte[] bytes = Pay.applyPay((byte) 0x01, Pay.getOrderCode());
+        String a = "AA0E02CC010401ED723576774A010024DD";
 
-        byte[] query = Query.query();
-        System.out.println(ByteUtils.byteArrayToHexString(query));
+        byte[] pointNumber = Pay.getPointNumber(ByteUtils.hexStr2Byte(a));
+        System.out.println(ByteUtils.byteArrayToHexString(pointNumber));
 
     }
 

@@ -50,9 +50,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
         log.info("[服务建立]" + session.getId());
         // 服务建立后发送设备号的指令
-        clientMap.put("DD", session);
         Thread.sleep(2000);
-        // sendMessage(session, Query.query());
+        sendMessage(session, Query.query());
 
     }
 
@@ -113,7 +112,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     String deviceCodeFromMachine = Query.getDeviceCodeFormCommand(command);
                     session.setAttribute(deviceCodeFromMachine, DEVICE_CODE_FILED_NAME);
                     clientMap.remove(deviceCodeFromMachine);
-                    clientMap.put(deviceCodeFromMachine, session);
+                    clientMap.put("DD", session);
+//                    clientMap.put(deviceCodeFromMachine, session);
                     log.info("当前是查询命令，设备号是:" + deviceCodeFromMachine);
                     break;
                 case CommandType.DOWN:
@@ -179,6 +179,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
             case CommandType.SUB_APPLY_POINT:
                 log.info("当前是云上分命令");
                 // AA0E02CC010401ED723576774A010024DD
+                // AA 0E 02 CC 01 04 01 ED723576774A 0100 24 DD
                 // 需要解析 上分数量判断是否要退款
                 byte[] pointNumber = Pay.getPointNumber(command);
                 byte[] pointOrderCode = Pay.getOrderCode(command);

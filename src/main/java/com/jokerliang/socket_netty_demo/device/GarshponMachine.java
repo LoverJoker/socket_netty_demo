@@ -367,7 +367,7 @@ public class GarshponMachine {
      * 主办主动上传状态
      */
     public static class Status{
-        byte cmd = CommandType.NORMAL;
+        static byte cmd = CommandType.NORMAL;
 
 
         /**
@@ -375,11 +375,16 @@ public class GarshponMachine {
          * @param allSpace 总参数
          * @return
          */
-        public byte[] backStatusToDevice(byte allSpace) {
+        public static byte[] backStatusToDevice(byte allSpace) {
             byte subCmd = CommandType.SUB_STATUS;
             byte length = 0x05;
             byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, allSpace);
             return getCommand(head, length, index, cmd, subDeviceId, subCmd, allSpace, bccCheck, end);
+        }
+
+        public static byte getAllSpace(byte[] command) {
+
+            return command[20];
         }
     }
 

@@ -69,6 +69,7 @@ public class TestController {
 
     @GetMapping("/pay")
     public String pay(String deviceCode) {
+        log.debug("------申请支付开始-----");
         byte[] orderCode = GarshponMachine.Pay.getOrderCode();
         byte[] bytes = GarshponMachine.Pay.applyPay((byte) 0x01, orderCode);
         ServerMessageHandler.sendMessage(deviceCode, bytes);

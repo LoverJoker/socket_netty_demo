@@ -23,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Query;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.CommandType;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Update;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Status;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Space;
 
 @Slf4j
 @Component
@@ -87,9 +89,6 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         }
     }
 
-
-
-
     @Override
     public void messageReceived(IoSession session, Object message) {
         IoBuffer inBuf = (IoBuffer) message;
@@ -132,7 +131,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     break;
                 case CommandType.NORMAL:
                     // 如果主命令是CC,就需要判断子命令
-                    handlerNormalMessage(command);
+                    handlerNormalMessage(session, command);
                     break;
             }
         }
@@ -144,21 +143,32 @@ public class ServerMessageHandler extends IoHandlerAdapter {
     /**
      * 处理如果是0XCC 的命令, 需要判断子命令
      */
-    public void handlerNormalMessage(byte[] command) {
+    public void handlerNormalMessage(IoSession session, byte[] command) {
         byte subType = CommandType.getSubType(command);
         switch (subType) {
             // 主板主动上传状态
             case CommandType.SUB_STATUS:
                 log.info("当前是主板上传状态命令");
+                // AA 16 02 CC 01 01 8B00D564000000640000006C9700 01 01007DDD
+                byte allSpace = Status.getAllSpace(command);
+                byte[] bytes = Status.backStatusToDevice(allSpace);
+                sendMessage(session, bytes);
                 break;
             // 申请支付
             case CommandType.SUB_APPLY_PAY:
                 log.info("当前是申请支付命令");
+                // AA0D02CC010301CB218792D64503AFDD
+
                 break;
         }
     }
 
+    public static void main(String[] args) {
+        String replace = "AA 16 02 CC 01 01 8B00D564000000640000006C9700 01 01007DDD".replace(" ", "");
+        byte allSpace = Status.getAllSpace(ByteUtils.hexStr2Byte(replace));
 
+        System.out.println(ByteUtils.byteToHex(allSpace));
+    }
     public static Boolean sendMessage(String deviceCode, String message) {
         if (!clientMap.containsKey(deviceCode)) {
             log.info("设备：" + deviceCode + "未在此服务器上连接");
@@ -189,15 +199,11 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 //        IoBuffer responseIoBuffer = IoBuffer.allocate(responseByteArray.length);
 //        responseIoBuffer.put(responseByteArray);
 //        responseIoBuffer.flip();
-        session.write(IoBuffer.wrap(responseByteArray));
+        sendMessage(session, responseByteArray);
     }
 
     private static void sendMessage(IoSession session, byte[] data) {
         log.info("发送消息:" + ByteUtils.byteArrayToHexString(data));
-        // byte[] responseByteArray = message.getBytes(StandardCharsets.UTF_8);
-//        IoBuffer responseIoBuffer = IoBuffer.allocate(responseByteArray.length);
-//        responseIoBuffer.put(responseByteArray);
-//        responseIoBuffer.flip();
         session.write(IoBuffer.wrap(data));
     }
 

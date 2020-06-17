@@ -25,6 +25,7 @@ import static com.jokerliang.socket_netty_demo.device.GarshponMachine.CommandTyp
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Update;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Status;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Space;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Pay;
 
 @Slf4j
 @Component
@@ -157,17 +158,33 @@ public class ServerMessageHandler extends IoHandlerAdapter {
             // 申请支付
             case CommandType.SUB_APPLY_PAY:
                 log.info("当前是申请支付命令");
-                // AA0D02CC010301CB218792D64503AFDD
+                // AA 0D 02 CC 01 03 01 CB218792D645 03 AFDD
+                // 接收到这个指令后就需要上分命令
+                byte spaceStatus = Pay.getSpaceStatus(command);
+                byte space = Pay.getSpace(command);
+                byte[] orderCode = Pay.getOrderCode(command);
+                log.info("当前仓位仓位号" + ByteUtils.byteToHex(space)
+                        + "他的状态:" + ByteUtils.byteToHex(spaceStatus)
+                        + "此单订单号" + ByteUtils.byteArrayToHexString(orderCode));
+                if (spaceStatus != Status.STATUS_OK) {
+                    log.debug("当前仓位不允许出货");
+                    return;
+                }
+                // 允许出货发送上分指令
+                Pay.applyPay(space, orderCode);
+                break;
 
+            case CommandType.SUB_APPLY_POINT:
+                log.debug("当前是云上分命令");
                 break;
         }
     }
 
     public static void main(String[] args) {
-        String replace = "AA 16 02 CC 01 01 8B00D564000000640000006C9700 01 01007DDD".replace(" ", "");
-        byte allSpace = Status.getAllSpace(ByteUtils.hexStr2Byte(replace));
+        String replace = "AA 0D 02 CC 01 03 01 CB218792D645 03 AFDD".replace(" ", "");
+        byte[] allSpace = Pay.getOrderCode(ByteUtils.hexStr2Byte(replace));
 
-        System.out.println(ByteUtils.byteToHex(allSpace));
+        System.out.println(ByteUtils.byteArrayToHexString(allSpace));
     }
     public static Boolean sendMessage(String deviceCode, String message) {
         if (!clientMap.containsKey(deviceCode)) {

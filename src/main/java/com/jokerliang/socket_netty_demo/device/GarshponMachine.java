@@ -162,9 +162,11 @@ public class GarshponMachine {
         public final static byte NORMAL = (byte) 0XCC;
 
         public final static byte SUB_STATUS = 0X01;
+
         public final static byte SUB_APPLY_PAY = 0X03;
         public final static byte SUB_APPLY_POINT = 0X04;
         public final static byte SUB_REPLAY_POINT_RESULT = 0X05;
+
         public final static byte SUB_QUERY_SPACE = 0X06;
 
         public static byte getType(byte[] command) {
@@ -369,6 +371,10 @@ public class GarshponMachine {
     public static class Status{
         static byte cmd = CommandType.NORMAL;
 
+        public static byte STATUS_OK = 0X00;
+        public static byte STATUS_ERROR = 0X01;
+        public static byte STATUS_OFFLINE = 0X02;
+        public static byte STATUS_OTHER = 0X03;
 
         /**
          * 扭蛋机主动上传状态的服务器回波
@@ -383,9 +389,10 @@ public class GarshponMachine {
         }
 
         public static byte getAllSpace(byte[] command) {
-
             return command[20];
         }
+
+
     }
 
     /**
@@ -395,6 +402,33 @@ public class GarshponMachine {
 
         // Index + CMD +Data + Check 数据总长
         static byte cmd = CommandType.NORMAL;
+
+        /**
+         * 获取仓位状态
+         * @param command
+         * @return
+         */
+        public static byte getSpaceStatus(byte[] command) {
+            return command[13];
+        }
+
+        /**
+         * 获取仓位号
+         * @param command
+         * @return
+         */
+        public static byte getSpace(byte[] command) {
+            return command[6];
+        }
+
+        /**
+         * 获取订单号，从命令中
+         * @param command
+         * @return
+         */
+        public static byte[] getOrderCode(byte[] command) {
+            return subData(command, 7, 13);
+        }
 
         /**
          * 申请支付
@@ -419,7 +453,7 @@ public class GarshponMachine {
          * @param point 上分数量
          * @return
          */
-        public byte[] applyPoint(byte space, byte[] orderCode, byte[] point) {
+        public static byte[] applyPoint(byte space, byte[] orderCode, byte[] point) {
             byte length = 0X0E;
             byte subCmd = CommandType.SUB_APPLY_POINT;
             byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, space, orderCode, point);
@@ -434,7 +468,7 @@ public class GarshponMachine {
          * @param orderCode 订单号
          * @return
          */
-        public byte[] replayPointResult(byte space, byte[] orderCode) {
+        public static byte[] replayPointResult(byte space, byte[] orderCode) {
             byte length = 0X0C;
             byte subCmd = CommandType.SUB_REPLAY_POINT_RESULT;
             byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, space, orderCode);

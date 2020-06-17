@@ -167,6 +167,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                         + "状态:" + ByteUtils.byteToHex(spaceStatus)
                         + "此单订单号" + ByteUtils.byteArrayToHexString(orderCode));
                 if (spaceStatus != Status.STATUS_OK) {
+                    refund(orderCode);
                     log.info("当前仓位不允许出货");
                     return;
                 }
@@ -177,21 +178,37 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
             case CommandType.SUB_APPLY_POINT:
                 log.info("当前是云上分命令");
+                // AA0E02CC010401ED723576774A010024DD
                 // 需要解析 上分数量判断是否要退款
                 byte[] pointNumber = Pay.getPointNumber(command);
+                byte[] pointOrderCode = Pay.getOrderCode(command);
                 // 首先字节翻转
                 ArrayUtils.reverse(pointNumber);
                 // 转string判断
                 String pointNumberStr = ByteUtils.byteArrayToHexString(pointNumber);
-                log.info("当前上分数量转化后的str:" + pointNumberStr);
+                log.info("当前上分数量转化后的str:" + pointNumberStr + "-当前订单号：" + ByteUtils.byteArrayToHexString(pointOrderCode));
                 if (pointNumberStr.equals("0000")) {
                     // 两个字节需要退款
                     log.info("当前需要退款");
+                    refund(pointOrderCode);
                 }
+             break;
+            case CommandType.SUB_REPLAY_POINT_RESULT:
+                // AA0E02CC010501ED723576774A010025DD
+                byte[] orderCode1 = Pay.getOrderCode(command);
+                byte space1 = Pay.getSpace(command);
+                byte[] bytes1 = Pay.replayPointResult(space1, orderCode1);
+                sendMessage(session, bytes1);
                 break;
         }
     }
 
+    /**
+     * 退款
+     */
+    public void refund(byte[] orderCode) {
+        log.info("当前订单号需要退款: " + ByteUtils.byteArrayToHexString(orderCode));
+    }
 
     public static Boolean sendMessage(String deviceCode, String message) {
         if (!clientMap.containsKey(deviceCode)) {

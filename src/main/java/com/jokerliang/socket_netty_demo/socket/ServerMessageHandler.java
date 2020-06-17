@@ -164,7 +164,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                 byte space = Pay.getSpace(command);
                 byte[] orderCode = Pay.getOrderCode(command);
                 log.info("当前仓位仓位号" + ByteUtils.byteToHex(space)
-                        + "他的状态:" + ByteUtils.byteToHex(spaceStatus)
+                        + "状态:" + ByteUtils.byteToHex(spaceStatus)
                         + "此单订单号" + ByteUtils.byteArrayToHexString(orderCode));
                 if (spaceStatus != Status.STATUS_OK) {
                     log.info("当前仓位不允许出货");
@@ -177,6 +177,17 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
             case CommandType.SUB_APPLY_POINT:
                 log.info("当前是云上分命令");
+                // 需要解析 上分数量判断是否要退款
+                byte[] pointNumber = Pay.getPointNumber(command);
+                // 首先字节翻转
+                ArrayUtils.reverse(pointNumber);
+                // 转string判断
+                String pointNumberStr = ByteUtils.byteArrayToHexString(pointNumber);
+                log.info("当前上分数量转化后的str:" + pointNumberStr);
+                if (pointNumberStr.equals("0000")) {
+                    // 两个字节需要退款
+                    log.info("当前需要退款");
+                }
                 break;
         }
     }

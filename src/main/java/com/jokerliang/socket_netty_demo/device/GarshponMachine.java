@@ -489,6 +489,15 @@ public class GarshponMachine {
         }
 
         /**
+         * 从云上分命令获取上分数量，如果是0000就要退款
+         * @param command
+         * @return
+         */
+        public static byte[] getPointNumber(byte[] command) {
+            return subData(command, 14, 16);
+        }
+
+        /**
          * 云上分结果回波
          * @param allSpace 仓位号
          * @param orderCode 订单号

@@ -2,6 +2,7 @@ package com.jokerliang.socket_netty_demo;
 
 
 
+import com.jokerliang.socket_netty_demo.device.ByteUtils;
 import com.jokerliang.socket_netty_demo.device.GarshponMachine;
 import com.jokerliang.socket_netty_demo.socket.ServerMessageHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -67,10 +68,11 @@ public class TestController {
     }
 
     @GetMapping("/pay")
-    public String pay() {
-        long l = System.nanoTime();
-
-        return "";
+    public String pay(String deviceCode) {
+        byte[] orderCode = GarshponMachine.Pay.getOrderCode();
+        byte[] bytes = GarshponMachine.Pay.applyPay((byte) 0x01, orderCode);
+        ServerMessageHandler.sendMessage(deviceCode, bytes);
+        return "发送的数据：" + ByteUtils.byteArrayToHexString(bytes);
     }
 
 

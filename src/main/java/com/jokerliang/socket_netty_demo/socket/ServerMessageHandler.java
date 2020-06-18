@@ -13,6 +13,7 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import rx.Observable;
 
 import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -26,6 +27,8 @@ import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Update;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Status;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Space;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Pay;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Error;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Bill;
 
 @Slf4j
 @Component
@@ -115,6 +118,10 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     clientMap.put("DD", session);
 //                    clientMap.put(deviceCodeFromMachine, session);
                     log.info("当前是查询命令，设备号是:" + deviceCodeFromMachine);
+                    // 需要发送查询仓位参数
+                    byte[] querySpace = Space.querySpace();
+                    sendMessage(session, querySpace);
+
                     break;
                 case CommandType.DOWN:
                     // 解析
@@ -133,6 +140,16 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                 case CommandType.NORMAL:
                     // 如果主命令是CC,就需要判断子命令
                     handlerNormalMessage(session, command);
+                    break;
+                case CommandType.ERROR_REPLAY:
+                    // 当前是主动故障上报
+                    byte errorCode = Error.getErrorCode(command);
+                    log.info("当前是主动故障上报,故障代码是：" + ByteUtils.byteToHex(errorCode));
+                    byte[] bytes = Error.replayError();
+                    sendMessage(session, bytes);
+                    break;
+                case CommandType.SUB_QUERY_SPACE:
+                    log.info("当前是仓位查询");
                     break;
             }
         }
@@ -202,6 +219,14 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                 byte[] bytes1 = Pay.replayPointResult(space1, orderCode1);
                 sendMessage(session, bytes1);
                 break;
+            case CommandType.SUB_BILL:
+                byte[] orderCodeBill = Pay.getOrderCode(command);
+                byte spaceBill = Pay.getSpace(command);
+                log.info("当前是上传账目增量订单号是：" + ByteUtils.byteArrayToHexString(orderCodeBill)
+                        + "仓位是：" + ByteUtils.byteToHex(spaceBill));
+                byte[] billByte = Bill.replayBill(spaceBill, orderCodeBill);
+                sendMessage(session, billByte);
+                break;
         }
     }
 
@@ -248,6 +273,15 @@ public class ServerMessageHandler extends IoHandlerAdapter {
     private static void sendMessage(IoSession session, byte[] data) {
         log.info("发送消息:" + ByteUtils.byteArrayToHexString(data));
         session.write(IoBuffer.wrap(data));
+
+        // 1s 后检测是否收到了回波，如果没有收到，就要重发
+
+        byte type = CommandType.getType(data);
+        if (type == CommandType.NORMAL) {
+            type = CommandType.getSubType(data);
+        }
+
+//        Observable.just()
     }
 
 

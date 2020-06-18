@@ -188,6 +188,11 @@ public class GarshponMachine {
         public final static byte SUB_REPLAY_POINT_RESULT = 0X05;
 
         public final static byte SUB_QUERY_SPACE = 0X06;
+        public final static byte SUB_SET_SPACE = 0X07;
+
+        public final static byte ERROR_REPLAY = 0X13;
+
+        public final static byte SUB_BILL = 0X08;
 
         public static byte getType(byte[] command) {
             return command[3];
@@ -381,9 +386,11 @@ public class GarshponMachine {
             return ByteUtils.byteArrayToHexString(bytes);
         }
 
+
+
+
+
     }
-
-
 
     /**
      * 主办主动上传状态
@@ -424,6 +431,27 @@ public class GarshponMachine {
      * 支付相关
      */
     public static class Pay{
+        /**
+         * 一次支付的全过程记录
+         *    : ------申请支付开始:CBC3CA46AD4C
+         *    : 申请支付的完整命令AA0C01CC010301CBC3CA46AD4CA7DD
+         *    : 发送消息:AA0C01CC010301CBC3CA46AD4CA7DD
+         *    : 接收到消息: AA0D02CC010301CBC3CA46AD4C00A5DD
+         *    : 拼完后的完整消息AA0D02CC010301CBC3CA46AD4C00A5DD
+         *    : 当前是申请支付命令
+         *    : 当前仓位仓位号01状态:00此单订单号CBC3CA46AD4C
+         *    : 云上分AA0E01CC010401CBC3CA46AD4C0100A3DD
+         *    : 发送消息:AA0E01CC010401CBC3CA46AD4C0100A3DD
+         *    : 接收到消息: AA0E02CC010401CBC3CA46AD4C0100A0DD
+         *    : 拼完后的完整消息AA0E02CC010401CBC3CA46AD4C0100A0DD
+         *    : 当前是云上分命令
+         *    : 当前上分数量转化后的str:0001-当前订单号：CBC3CA46AD4C
+         *    : 接收到消息: AA0E02CC010501CBC3CA46AD4C0100A1DD
+         *    : 拼完后的完整消息AA0E02CC010501CBC3CA46AD4C0100A1DD
+         *    : 当前是云上分上传结果
+         *    : 云上分结果反馈命令:AA0C01CC010501CBC3CA46AD4CA1DD
+         *    : 发送消息:AA0C01CC010501CBC3CA46AD4CA1DD
+         */
 
         // Index + CMD +Data + Check 数据总长
         static byte cmd = CommandType.NORMAL;
@@ -537,14 +565,83 @@ public class GarshponMachine {
 
         /**
          * 查询仓位参数
-         * @param allSpace 仓位（此主板支持的总的仓位数）
-          * @return
+         * @return
          */
-        public static byte[] querySpace(byte allSpace) {
-            byte subCommand = CommandType.SUB_QUERY_SPACE;
-            byte length = getLength(index, cmd, subDeviceId, subCommand, allSpace);
-            byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCommand, allSpace);
-            return getCommand(head, length, index, cmd, subDeviceId, subCommand, allSpace, bccCheck, end);
+        public static byte[] querySpace() {
+            byte space = 0X01;
+            byte subCmd = CommandType.SUB_QUERY_SPACE;
+            byte length = getLength(index, cmd, subDeviceId, subCmd, space);
+            byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, space);
+            return getCommand(head, length, index, cmd, subDeviceId, subCmd, space, bccCheck, end);
+        }
+
+        /**
+         * 通过查询仓位指令得到仓位
+         * @return
+         */
+        public byte getSpaceForCommand(byte[] command) {
+            return command[6];
+        }
+
+        /**
+         * 设置仓位号
+         * 如果服务端和终端不同，以终端的为准
+         * @param space 仓位
+         * @param status 状态 0在线 1离线
+         * @return
+         */
+        public byte[] setSpace(byte space, byte status) {
+            byte subCommand = CommandType.SUB_SET_SPACE;
+            byte length = getLength(index, cmd, subDeviceId, subCommand, space, status);
+            byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCommand, space, status);
+            return getCommand(head, length, index, cmd, subDeviceId, subCommand, space, status, bccCheck, end);
+        }
+
+    }
+
+
+    /**
+     * 故障相关
+     */
+    public static class Error {
+
+        static byte cmd = CommandType.ERROR_REPLAY;
+
+        /**
+         * 获取故障代码
+         * @param command
+         * @return
+         */
+        public static byte getErrorCode(byte[] command) {
+            return command[5];
+        }
+
+        /**
+         * 设备故障上报应答
+         */
+        public static byte[] replayError() {
+            byte length = getLength(index, cmd);
+            byte[] bccCheck = getBCCCheck(length, index, cmd);
+            return getCommand(head, length, index, cmd, bccCheck, end);
+        }
+    }
+
+
+    /**
+     * 上传账目增量，我方暂时不需要，给个回波
+     */
+    public static class Bill {
+
+        static byte cmd = CommandType.NORMAL;
+
+
+        public static byte[] replayBill(byte space, byte[] orderCode) {
+            byte subCmd = CommandType.SUB_BILL;
+            byte length = getLength(index, cmd, subDeviceId, subCmd, space, orderCode);
+            byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId
+                    , subCmd, space, orderCode);
+            return getCommand(head, length, index, cmd, subDeviceId, subCmd,
+                    space, orderCode, bccCheck, end);
         }
     }
 

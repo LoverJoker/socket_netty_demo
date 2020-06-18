@@ -107,10 +107,12 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         inBuf.get(inbytes, 0, inBuf.limit());
         String commandStr = ByteUtils.byteArrayToHexString(inbytes);
 
-        String SS = new String(inbytes, StandardCharsets.UTF_8);
+        String heartStr = new String(inbytes, StandardCharsets.UTF_8);
 
+        if (heartStr.equals("+ping-")) {
+            return;
+        }
 
-        log.info("判断心跳: " + SS);
         log.info("接收到消息: " + commandStr);
 
         byte[] command = composeCommand(inbytes, session.getId() + "");

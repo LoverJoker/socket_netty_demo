@@ -128,7 +128,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
             switch (type) {
                 case CommandType.QUERY:
                     String deviceCodeFromMachine = Query.getDeviceCodeFormCommand(command);
-                    session.setAttribute(deviceCodeFromMachine, DEVICE_CODE_FILED_NAME);
+                    session.setAttribute(DEVICE_CODE_FILED_NAME, deviceCodeFromMachine);
                     clientMap.remove(deviceCodeFromMachine);
                     clientMap.put("DD", session);
 //                    clientMap.put(deviceCodeFromMachine, session);
@@ -355,10 +355,12 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
     @Override
     public void sessionClosed(IoSession session) throws Exception {   //用户从服务器断开
-
         String deviceCode = (String) session.getAttribute(DEVICE_CODE_FILED_NAME);
+        if (deviceCode != null) {
+            clientMap.remove(deviceCode);
+        }
         log.info("[服务断开]" + deviceCode);
-        clientMap.remove(deviceCode);
+
     }
 
     @Override

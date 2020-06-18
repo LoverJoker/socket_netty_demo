@@ -84,7 +84,7 @@ public class TestController {
     }
 
     @GetMapping("/getVolume")
-    public String getVolume(String deviceCode, ) {
+    public String getVolume(String deviceCode) {
         byte[] bytes = GarshponMachine.Params.queryVolume();
         ServerMessageHandler.sendMessage("DD", bytes);
         return  "发送的数据：" + ByteUtils.byteArrayToHexString(bytes);

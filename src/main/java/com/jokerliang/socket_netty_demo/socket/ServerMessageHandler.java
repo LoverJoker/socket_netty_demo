@@ -388,4 +388,9 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         cause.printStackTrace();
     }
 
+    public static void main(String[] args) {
+        byte[] bytes = "+ping-".getBytes();
+        System.out.println(ByteUtils.byteArrayToHexString(bytes));
+    }
+
 }

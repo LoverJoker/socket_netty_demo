@@ -576,6 +576,16 @@ public class GarshponMachine {
         }
 
         /**
+         * 获取仓位状态
+         * @param command
+         * @return 是否在线
+         */
+        public static boolean getStatus(byte[] command) {
+            byte b = command[7];
+            return b == 0X00;
+        }
+
+        /**
          * 通过查询仓位指令得到仓位
          * @return
          */
@@ -616,6 +626,24 @@ public class GarshponMachine {
             return command[5];
         }
 
+        public static String getErrorCodeExplain(byte errorCode) {
+            switch (errorCode) {
+                case 0x00:
+                    return "无故障";
+                case 0x01:
+                    return "系统故障";
+                case 0x02:
+                    return "投币器故障";
+                case 0x03:
+                    return "卡扭蛋故障";
+                case 0x04:
+                    return "无扭蛋故障";
+                case 0x05:
+                    return "扭蛋库存不足";
+            }
+            return "未知故障：" + ByteUtils.byteToHex(errorCode);
+        }
+
         /**
          * 设备故障上报应答
          */
@@ -650,10 +678,10 @@ public class GarshponMachine {
        // System.out.println(ByteUtils.byteArrayToHexString(downFrame));
 
         // AA 0C 01 CC 01 03 01 4C5C2BCF0C6C 56 DD
-        String a = "AA0E02CC010401ED723576774A010024DD";
+        String a = "AA0702CC01060100CFDD";
 
-        byte[] pointNumber = Pay.getPointNumber(ByteUtils.hexStr2Byte(a));
-        System.out.println(ByteUtils.byteArrayToHexString(pointNumber));
+        boolean status = Space.getStatus(ByteUtils.hexStr2Byte(a));
+        System.out.println(status);
 
     }
 

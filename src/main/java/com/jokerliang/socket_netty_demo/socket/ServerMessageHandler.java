@@ -137,19 +137,19 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                         sendMessage(session, downFrame);
                     }
                     break;
-                case CommandType.NORMAL:
-                    // 如果主命令是CC,就需要判断子命令
-                    handlerNormalMessage(session, command);
-                    break;
                 case CommandType.ERROR_REPLAY:
                     // 当前是主动故障上报
                     byte errorCode = Error.getErrorCode(command);
-                    log.info("当前是主动故障上报,故障代码是：" + ByteUtils.byteToHex(errorCode));
+                    if (errorCode != 0X00) {
+                        String errorCodeExplain = Error.getErrorCodeExplain(errorCode);
+                        log.info("当前是主动故障上报,故障代码是：" + ByteUtils.byteToHex(errorCode) + "对应解释：" + errorCodeExplain);
+                    }
                     byte[] bytes = Error.replayError();
                     sendMessage(session, bytes);
                     break;
-                case CommandType.SUB_QUERY_SPACE:
-                    log.info("当前是仓位查询");
+                case CommandType.NORMAL:
+                    // 如果主命令是CC,就需要判断子命令
+                    handlerNormalMessage(session, command);
                     break;
             }
         }
@@ -226,6 +226,11 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                         + "仓位是：" + ByteUtils.byteToHex(spaceBill));
                 byte[] billByte = Bill.replayBill(spaceBill, orderCodeBill);
                 sendMessage(session, billByte);
+                break;
+            case CommandType.SUB_QUERY_SPACE:
+                // AA0702CC01060100CFDD
+                boolean status = Space.getStatus(command);
+                log.info("当前是仓位查询, 是否在线：" + status);
                 break;
         }
     }

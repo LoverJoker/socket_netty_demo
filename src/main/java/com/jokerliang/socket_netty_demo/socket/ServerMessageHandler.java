@@ -14,11 +14,16 @@ import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
+import javax.websocket.Session;
 import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Query;
@@ -29,6 +34,7 @@ import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Space;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Pay;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Error;
 import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Bill;
+import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Params;
 
 @Slf4j
 @Component
@@ -37,6 +43,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 
     private static final ConcurrentHashMap<String, IoSession> clientMap = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, byte[]> clientMessageCacheMap = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Boolean> messageRetryMap = new ConcurrentHashMap<>();
 
 
     public static final String DEVICE_CODE_FILED_NAME = "deviceCode";
@@ -100,7 +107,6 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         String commandStr = ByteUtils.byteArrayToHexString(inbytes);
         log.info("接收到消息: " + commandStr);
 
-
         byte[] command = composeCommand(inbytes, session.getId() + "");
 
         if (command != null) {
@@ -110,6 +116,15 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                 String deviceCode = (String) session.getAttribute(DEVICE_CODE_FILED_NAME);
                 log.info("当前通过 session取得的设备号:" + deviceCode);
             }
+
+            byte retryType = type;
+            if (retryType == CommandType.NORMAL) {
+                retryType = CommandType.getSubType(command);
+            }
+
+            messageRetryMap.remove(session.getId() + ByteUtils.byteToHex(retryType));
+
+
             switch (type) {
                 case CommandType.QUERY:
                     String deviceCodeFromMachine = Query.getDeviceCodeFormCommand(command);
@@ -119,8 +134,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
 //                    clientMap.put(deviceCodeFromMachine, session);
                     log.info("当前是查询命令，设备号是:" + deviceCodeFromMachine);
                     // 需要发送查询仓位参数
-                    byte[] querySpace = Space.querySpace();
-                    sendMessage(session, querySpace);
+                    // byte[] querySpace = Space.querySpace();
+                    // sendMessage(session, querySpace);
 
                     break;
                 case CommandType.DOWN:
@@ -146,6 +161,10 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     }
                     byte[] bytes = Error.replayError();
                     sendMessage(session, bytes);
+                    break;
+                case CommandType.PARAM_VOLUME:
+                    int volume = Params.getVolume(command);
+                    log.info("当前是获取音量指令：" + volume);
                     break;
                 case CommandType.NORMAL:
                     // 如果主命令是CC,就需要判断子命令
@@ -231,6 +250,10 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                 // AA0702CC01060100CFDD
                 boolean status = Space.getStatus(command);
                 log.info("当前是仓位查询, 是否在线：" + status);
+//                if (!status) {
+//                    // 如果是离线，主动下发要他在线
+//
+//                }
                 break;
         }
     }
@@ -275,6 +298,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         sendMessage(session, responseByteArray);
     }
 
+
     private static void sendMessage(IoSession session, byte[] data) {
         log.info("发送消息:" + ByteUtils.byteArrayToHexString(data));
         session.write(IoBuffer.wrap(data));
@@ -286,9 +310,42 @@ public class ServerMessageHandler extends IoHandlerAdapter {
             type = CommandType.getSubType(data);
         }
 
-//        Observable.just()
+
+        messageRetryMap.put(session.getId() + ByteUtils.byteToHex(type), true);
+
+        retrySendMessage(0, type, data, session);
     }
 
+    private static void retrySendMessage(int count, byte type, byte[] data, IoSession session) {
+        count += 1;
+        if (count > 4) {
+            log.info("此条命令重试次数超过限制");
+            return;
+        }
+        int finalCount = count;
+        Observable
+                .just(data)
+                .delay(1, TimeUnit.SECONDS)
+                .filter(new Func1<byte[], Boolean>() {
+                    @Override
+                    public Boolean call(byte[] bytes) {
+                        Boolean aBoolean = messageRetryMap.get(session.getId() + ByteUtils.byteToHex(type));
+                        return aBoolean != null && aBoolean;
+                    }
+                })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.newThread())
+                .doOnNext(new Action1<byte[]>() {
+                    @Override
+                    public void call(byte[] bytes) {
+                        log.info("当前数据进行重试操作：Type:" + CommandType.getType(bytes) + "-数据："+ ByteUtils.byteArrayToHexString(bytes));
+                        messageRetryMap.put(session.getId() + ByteUtils.byteToHex(type), true);
+                        session.write(IoBuffer.wrap(bytes));
+                        retrySendMessage(finalCount, type, data, session);
+                    }
+                })
+                .subscribe();
+    }
 
     @Override
     public void sessionClosed(IoSession session) throws Exception {   //用户从服务器断开
@@ -312,4 +369,24 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         cause.printStackTrace();
     }
 
+
+    public static void main(String[] args) throws InterruptedException {
+        Observable
+                .just(1)
+                .delay(1, TimeUnit.SECONDS)
+                .filter(new Func1<Integer, Boolean>() {
+                    @Override
+                    public Boolean call(Integer integer) {
+                        return false;
+                    }
+                })
+                .doOnNext(new Action1<Integer>() {
+                    @Override
+                    public void call(Integer integer) {
+                        System.out.println(integer);
+                    }
+                }).subscribe();
+
+        Thread.sleep(20000);
+    }
 }

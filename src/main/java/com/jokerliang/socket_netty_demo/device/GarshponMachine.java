@@ -5,6 +5,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -181,6 +182,11 @@ public class GarshponMachine {
         public final static byte QUERY = (byte) 0X01;
         public final static byte NORMAL = (byte) 0XCC;
 
+        public final static byte ERROR_REPLAY = 0X13;
+
+        public final static byte PARAM_VOLUME = 0X05;
+        public final static byte PARAM_VOLUME_SET = 0X06;
+
         public final static byte SUB_STATUS = 0X01;
 
         public final static byte SUB_APPLY_PAY = 0X03;
@@ -190,7 +196,6 @@ public class GarshponMachine {
         public final static byte SUB_QUERY_SPACE = 0X06;
         public final static byte SUB_SET_SPACE = 0X07;
 
-        public final static byte ERROR_REPLAY = 0X13;
 
         public final static byte SUB_BILL = 0X08;
 
@@ -673,15 +678,46 @@ public class GarshponMachine {
         }
     }
 
+    /**
+     * 扩展参数
+     * 暂时只能修改音量
+     */
+    public static class Params {
+
+        public static byte[] queryVolume() {
+            byte cmd = CommandType.PARAM_VOLUME;
+            byte length = getLength(index, cmd);
+            byte[] bccCheck = getBCCCheck(length, index, cmd);
+            return getCommand(head, length, index, cmd, bccCheck, end);
+        }
+
+        public static int getVolume(byte[] command) {
+            byte volume = command[4];
+            return Integer.parseInt(ByteUtils.byteToHex(volume), 16);
+        }
+
+        /**
+         * 0-15 0-F
+         * @param volume
+         * @return
+         */
+        public static byte[] setVolume(int volume) {
+            volume = Math.min(15, volume);
+            String s = Integer.toHexString(volume);
+            byte volumeByte = ByteUtils.hexStr2Byte(s)[0];
+            byte cmd = CommandType.PARAM_VOLUME_SET;
+            byte length = getLength(index, cmd, volumeByte);
+            byte[] bccCheck = getBCCCheck(length, index, cmd, volumeByte);
+            return getCommand(head, length, index, cmd, volumeByte, bccCheck, end);
+        }
+    }
+
     public static void main(String[] args) throws IOException {
 //        byte[] downFrame = Update.getDownFrame(1);
        // System.out.println(ByteUtils.byteArrayToHexString(downFrame));
 
         // AA 0C 01 CC 01 03 01 4C5C2BCF0C6C 56 DD
-        String a = "AA0702CC01060100CFDD";
 
-        boolean status = Space.getStatus(ByteUtils.hexStr2Byte(a));
-        System.out.println(status);
 
     }
 

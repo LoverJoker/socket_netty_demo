@@ -202,9 +202,15 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                 log.info("当前仓位仓位号" + ByteUtils.byteToHex(space)
                         + "状态:" + ByteUtils.byteToHex(spaceStatus)
                         + "此单订单号" + ByteUtils.byteArrayToHexString(orderCode));
-                if (spaceStatus != Status.STATUS_OK) {
+                if (spaceStatus == Status.STATUS_ERROR || spaceStatus == Status.STATUS_OFFLINE) {
                     refund(orderCode);
                     log.info("当前仓位不允许出货");
+                    return;
+                }
+                if (spaceStatus == Status.STATUS_OTHER) {
+                    // 拿到该台机器最后一个订单号，然后发送 上分 0 解决。
+                    // 每一次新订单，都应该要检查该台机器的最后一个订单是否已经完成。
+                    // 如果没有完成，需要等他完成以后，再发送下一次申请支付。
                     return;
                 }
                 // 允许出货发送上分指令

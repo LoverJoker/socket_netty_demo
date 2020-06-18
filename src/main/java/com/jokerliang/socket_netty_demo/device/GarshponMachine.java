@@ -712,14 +712,6 @@ public class GarshponMachine {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-//        byte[] downFrame = Update.getDownFrame(1);
-       // System.out.println(ByteUtils.byteArrayToHexString(downFrame));
-
-        // AA 0C 01 CC 01 03 01 4C5C2BCF0C6C 56 DD
-
-
-    }
 
 
 

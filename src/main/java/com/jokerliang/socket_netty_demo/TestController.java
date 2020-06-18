@@ -76,5 +76,18 @@ public class TestController {
         return "发送的数据：" + ByteUtils.byteArrayToHexString(bytes);
     }
 
+    @GetMapping("/volume")
+    public String volume(int num) {
+        byte[] bytes = GarshponMachine.Params.setVolume(num);
+        ServerMessageHandler.sendMessage("DD", bytes);
+        return  "发送的数据：" + ByteUtils.byteArrayToHexString(bytes);
+    }
+
+    @GetMapping("/getVolume")
+    public String getVolume() {
+        byte[] bytes = GarshponMachine.Params.queryVolume();
+        ServerMessageHandler.sendMessage("DD", bytes);
+        return  "发送的数据：" + ByteUtils.byteArrayToHexString(bytes);
+    }
 
 }

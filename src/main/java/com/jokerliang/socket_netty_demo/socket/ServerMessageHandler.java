@@ -1,5 +1,6 @@
 package com.jokerliang.socket_netty_demo.socket;
 
+import com.jokerliang.socket_netty_demo.GsonUtil;
 import com.jokerliang.socket_netty_demo.ReceiveLog;
 import com.jokerliang.socket_netty_demo.device.ByteUtils;
 
@@ -105,8 +106,13 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         byte[] inbytes = new byte[inBuf.limit()];
         inBuf.get(inbytes, 0, inBuf.limit());
         String commandStr = ByteUtils.byteArrayToHexString(inbytes);
-        log.info("接收到消息: " + commandStr);
 
+
+        if (commandStr.contains("\"") || commandStr.contains("\'") || commandStr.contains("\\{")) {
+            log.info("接收到心跳包: " + commandStr);
+            return;
+        }
+        log.info("接收到消息: " + commandStr);
         byte[] command = composeCommand(inbytes, session.getId() + "");
 
         if (command != null) {
@@ -130,8 +136,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     String deviceCodeFromMachine = Query.getDeviceCodeFormCommand(command);
                     session.setAttribute(DEVICE_CODE_FILED_NAME, deviceCodeFromMachine);
                     clientMap.remove(deviceCodeFromMachine);
-                    clientMap.put("DD", session);
-//                    clientMap.put(deviceCodeFromMachine, session);
+                    //              clientMap.put("DD", session);
+                    clientMap.put(deviceCodeFromMachine, session);
                     log.info("当前是查询命令，设备号是:" + deviceCodeFromMachine);
                     // 需要发送查询仓位参数
                     // byte[] querySpace = Space.querySpace();
@@ -317,9 +323,11 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         }
 
 
-        messageRetryMap.put(session.getId() + ByteUtils.byteToHex(type), true);
-
-        retrySendMessage(0, type, data, session);
+        // 不是所有的数据都需要重试的，
+//
+//        messageRetryMap.put(session.getId() + ByteUtils.byteToHex(type), true);
+//
+//        retrySendMessage(0, type, data, session);
     }
 
     private static void retrySendMessage(int count, byte type, byte[] data, IoSession session) {
@@ -336,6 +344,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     @Override
                     public Boolean call(byte[] bytes) {
                         Boolean aBoolean = messageRetryMap.get(session.getId() + ByteUtils.byteToHex(type));
+
                         return aBoolean != null && aBoolean;
                     }
                 })
@@ -377,24 +386,10 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         cause.printStackTrace();
     }
 
+    public static void main(String[] args) {
+        String joker = GsonUtil.getGson().toJson(new String("joker"));
+        System.out.println(joker.contains("\""));
 
-    public static void main(String[] args) throws InterruptedException {
-        Observable
-                .just(1)
-                .delay(1, TimeUnit.SECONDS)
-                .filter(new Func1<Integer, Boolean>() {
-                    @Override
-                    public Boolean call(Integer integer) {
-                        return false;
-                    }
-                })
-                .doOnNext(new Action1<Integer>() {
-                    @Override
-                    public void call(Integer integer) {
-                        System.out.println(integer);
-                    }
-                }).subscribe();
-
-        Thread.sleep(20000);
     }
+
 }

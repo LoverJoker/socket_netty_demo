@@ -138,8 +138,8 @@ public class ServerMessageHandler extends IoHandlerAdapter {
                     String deviceCodeFromMachine = Query.getDeviceCodeFormCommand(command);
                     session.setAttribute(DEVICE_CODE_FILED_NAME, deviceCodeFromMachine);
                     clientMap.remove(deviceCodeFromMachine);
-                    //              clientMap.put("DD", session);
-                    clientMap.put(deviceCodeFromMachine, session);
+                     clientMap.put("DD", session);
+                    //  clientMap.put(deviceCodeFromMachine, session);
                     log.info("当前是查询命令，设备号是:" + deviceCodeFromMachine);
                     // 需要发送查询仓位参数
                     // byte[] querySpace = Space.querySpace();

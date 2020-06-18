@@ -107,12 +107,12 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         inBuf.get(inbytes, 0, inBuf.limit());
         String commandStr = ByteUtils.byteArrayToHexString(inbytes);
 
+        String SS = new String(inbytes, StandardCharsets.UTF_8);
 
-        if (commandStr.contains("\"") || commandStr.contains("\'") || commandStr.contains("\\{")) {
-            log.info("接收到心跳包: " + commandStr);
-            return;
-        }
+
+        log.info("判断心跳: " + SS);
         log.info("接收到消息: " + commandStr);
+
         byte[] command = composeCommand(inbytes, session.getId() + "");
 
         if (command != null) {
@@ -384,12 +384,6 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         super.exceptionCaught(session, cause);
         log.error("服务异常" + session.getId() + "//deviceCode" + session.getAttribute(DEVICE_CODE_FILED_NAME));
         cause.printStackTrace();
-    }
-
-    public static void main(String[] args) {
-        String joker = GsonUtil.getGson().toJson(new String("joker"));
-        System.out.println(joker.contains("\""));
-
     }
 
 }

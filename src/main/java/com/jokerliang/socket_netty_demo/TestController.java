@@ -4,14 +4,12 @@ package com.jokerliang.socket_netty_demo;
 
 import com.jokerliang.socket_netty_demo.device.ByteUtils;
 import com.jokerliang.socket_netty_demo.device.GarshponMachine;
-import com.jokerliang.socket_netty_demo.socket.ServerMessageHandler;
+import com.jokerliang.socket_netty_demo.socket.GarshponServerMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -55,7 +53,7 @@ public class TestController {
      */
     @GetMapping("/test")
     public String test (String cmd, String deviceCode) {
-        ServerMessageHandler.sendMessage(deviceCode, cmd);
+        GarshponServerMessageHandler.sendMessage(deviceCode, cmd);
         return "success";
     }
 
@@ -63,7 +61,7 @@ public class TestController {
     public String update(String deviceCode) throws IOException {
         log.info("----------------------注意开始此次更新----------------------");
         byte[] downFrame = GarshponMachine.Update.getDownFrame(1);
-        ServerMessageHandler.sendMessage(deviceCode, downFrame);
+        GarshponServerMessageHandler.sendMessage(deviceCode, downFrame);
         return "success";
     }
 
@@ -72,21 +70,21 @@ public class TestController {
         byte[] orderCode = GarshponMachine.Pay.getOrderCode();
         log.info("------申请支付开始:" +  ByteUtils.byteArrayToHexString(orderCode));
         byte[] bytes = GarshponMachine.Pay.applyPay((byte) 0x01, orderCode);
-        ServerMessageHandler.sendMessage(deviceCode, bytes);
+        GarshponServerMessageHandler.sendMessage(deviceCode, bytes);
         return "发送的数据：" + ByteUtils.byteArrayToHexString(bytes);
     }
 
     @GetMapping("/volume")
     public String volume(String deviceCode, int num) {
         byte[] bytes = GarshponMachine.Params.setVolume(num);
-        ServerMessageHandler.sendMessage(deviceCode, bytes);
+        GarshponServerMessageHandler.sendMessage(deviceCode, bytes);
         return  "发送的数据：" + ByteUtils.byteArrayToHexString(bytes);
     }
 
     @GetMapping("/getVolume")
     public String getVolume(String deviceCode) {
         byte[] bytes = GarshponMachine.Params.queryVolume();
-        ServerMessageHandler.sendMessage(deviceCode, bytes);
+        GarshponServerMessageHandler.sendMessage(deviceCode, bytes);
         return  "发送的数据：" + ByteUtils.byteArrayToHexString(bytes);
     }
 

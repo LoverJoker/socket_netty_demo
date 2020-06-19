@@ -1,7 +1,7 @@
 package com.jokerliang.socket_netty_demo;
 
 
-import com.jokerliang.socket_netty_demo.socket.ServerMessageHandler;
+import com.jokerliang.socket_netty_demo.socket.GarshponServerMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
@@ -9,7 +9,6 @@ import org.apache.mina.filter.keepalive.KeepAliveFilter;
 import org.apache.mina.filter.keepalive.KeepAliveRequestTimeoutHandler;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,7 +21,7 @@ public class MinaConfig {
     private final int serverPort = 8768;
 
     @Autowired
-    private ServerMessageHandler serverHandler;
+    private GarshponServerMessageHandler serverHandler;
 
 
 

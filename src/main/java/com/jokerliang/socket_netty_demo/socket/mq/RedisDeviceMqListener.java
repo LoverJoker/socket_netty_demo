@@ -9,7 +9,7 @@ package com.jokerliang.socket_netty_demo.socket.mq;
 
 
 import com.jokerliang.socket_netty_demo.GashaponPushMessage;
-import com.jokerliang.socket_netty_demo.socket.ServerMessageHandler;
+import com.jokerliang.socket_netty_demo.socket.GarshponServerMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
@@ -32,7 +32,7 @@ public class RedisDeviceMqListener implements MessageListener {
         String messageJson = message.toString();
         log.info("RedisDeviceMqListener:onMessage" + messageJson);
         GashaponPushMessage gashaponPushMessage = GashaponPushMessage.fromJson(messageJson);
-        ServerMessageHandler.sendMessage(gashaponPushMessage.getDeviceCode(), gashaponPushMessage.getMessage());
+        GarshponServerMessageHandler.sendMessage(gashaponPushMessage.getDeviceCode(), gashaponPushMessage.getMessage());
     }
 
 

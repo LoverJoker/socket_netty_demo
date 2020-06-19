@@ -39,7 +39,7 @@ import static com.jokerliang.socket_netty_demo.device.GarshponMachine.Params;
 
 @Slf4j
 @Component
-public class ServerMessageHandler extends IoHandlerAdapter {
+public class GarshponServerMessageHandler extends IoHandlerAdapter {
 
 
     private static final ConcurrentHashMap<String, IoSession> clientMap = new ConcurrentHashMap<>();
@@ -47,7 +47,7 @@ public class ServerMessageHandler extends IoHandlerAdapter {
     private static final ConcurrentHashMap<String, Boolean> messageRetryMap = new ConcurrentHashMap<>();
 
 
-    public static final String DEVICE_CODE_FILED_NAME = "deviceCode";
+    private static final String DEVICE_CODE_FILED_NAME = "deviceCode";
 
     @Override
     public void sessionCreated(IoSession session) throws Exception { //用户连接到服务器
@@ -388,9 +388,6 @@ public class ServerMessageHandler extends IoHandlerAdapter {
         cause.printStackTrace();
     }
 
-    public static void main(String[] args) {
-        byte[] bytes = "+ping-".getBytes();
-        System.out.println(ByteUtils.byteArrayToHexString(bytes));
-    }
+
 
 }

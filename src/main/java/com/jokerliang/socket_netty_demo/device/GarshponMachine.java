@@ -490,11 +490,11 @@ public class GarshponMachine {
 
         /**
          * 申请支付
-         * @param space 仓位号
-         * @param orderCode 订单号
+         * @param orderCode 订单号 6个字节
          * @return
          */
-        public static byte[] applyPay(byte space, byte[] orderCode) {
+        public static byte[] applyPay(byte[] orderCode) {
+            byte space = 0X01;
             byte subCmd = CommandType.SUB_APPLY_PAY;
             byte length = getLength(index, cmd, subDeviceId, subCmd, space, orderCode);
             byte[] bccCheck = getBCCCheck(length, index, cmd, subDeviceId, subCmd, space, orderCode);
